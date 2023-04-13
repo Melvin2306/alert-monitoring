@@ -10,6 +10,10 @@ You can disable using tor for single watches by choosing "Direct" within the "Re
 
 Make sure the `proxies.json` is present in the toplevel of your datastore directory if you run into problems. The content of `proxies.json` is based on the changedetection.io documentation.
 
+## Example
+
+An example watch is provided within [`url-watches.json`](datastore/url-watches.json). It will check the Tor api and returns your exit IP and if the connection was established via the Tor nework.
+
 ## Credits
 
 I do not own any of the projects. Credits go to the maintainers of each project.
