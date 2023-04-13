@@ -1,0 +1,37 @@
+version: '3'
+services:
+  proxy:
+    container_name: torprivoxy
+    image: avpnusr/torprivoxy:latest-debian
+    restart: unless-stopped
+    hostname: proxy
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:0.41
+    restart: unless-stopped
+    container_name: changedetection
+    volumes:
+      - ./datastore:/datastore
+    ports:
+      - "8080:5000"
+    environment:
+      - HIDE_REFERER=true
+      - PLAYWRIGHT_DRIVER_URL=ws://playwright-chrome:3000/?stealth=1&--disable-web-security=false
+  playwright-chrome:
+    container_name: playwright
+    image: browserless/chrome
+    restart: unless-stopped
+    environment:
+      - SCREEN_WIDTH=1920
+      - SCREEN_HEIGHT=1080
+      - SCREEN_DEPTH=16
+      - ENABLE_DEBUGGER=false
+      - PREBOOT_CHROME=true
+      - CONNECTION_TIMEOUT=300000
+      - MAX_CONCURRENT_SESSIONS=10
+      - CHROME_REFRESH_TIME=600000
+      - DEFAULT_BLOCK_ADS=true
+      - DEFAULT_STEALTH=true
+      - DEFAULT_IGNORE_HTTPS_ERRORS=true
+
+volumes:
+  changedetection-data:

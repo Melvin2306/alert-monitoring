@@ -1,0 +1,155 @@
+{
+    "note": "Hello! If you change this file manually, please be sure to restart your changedetection.io instance!",
+    "watching": {
+        "1789b366-d886-481f-b916-b246e955552f": {
+            "body": "",
+            "check_unique_lines": false,
+            "check_count": 1,
+            "consecutive_filter_failures": 0,
+            "extract_text": [],
+            "extract_title_as_title": false,
+            "fetch_backend": "html_requests",
+            "processor": "text_json_diff",
+            "filter_failure_notification_send": true,
+            "filter_text_added": true,
+            "filter_text_replaced": true,
+            "filter_text_removed": true,
+            "has_ldjson_price_data": null,
+            "track_ldjson_price_data": null,
+            "headers": {},
+            "ignore_text": [],
+            "in_stock_only": false,
+            "include_filters": [],
+            "last_checked": 0,
+            "last_error": false,
+            "last_viewed": 0,
+            "method": "GET",
+            "notification_body": "",
+            "notification_format": "System default",
+            "notification_muted": false,
+            "notification_title": "",
+            "notification_screenshot": false,
+            "notification_urls": [],
+            "paused": false,
+            "previous_md5": "",
+            "previous_md5_before_filters": "",
+            "proxy": null,
+            "subtractive_selectors": [],
+            "tag": "",
+            "text_should_not_be_present": [],
+            "time_between_check": {
+                "weeks": null,
+                "days": 1,
+                "hours": 0,
+                "minutes": null,
+                "seconds": null
+            },
+            "title": "tor - json api",
+            "trigger_text": [],
+            "url": "https://check.torproject.org/api/ip",
+            "uuid": "1789b366-d886-481f-b916-b246e955552f",
+            "webdriver_delay": null,
+            "webdriver_js_execute_code": "",
+            "ignore_status_codes": false,
+            "browser_steps": [
+                {
+                    "operation": null,
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                },
+                {
+                    "operation": "Choose one",
+                    "selector": "",
+                    "optional_value": ""
+                }
+            ],
+            "save_button": true,
+            "last_notification_error": false,
+            "content_type": "application/json",
+            "last_check_status": 200,
+            "fetch_time": 0.972
+        }
+    },
+    "settings": {
+        "headers": {},
+        "requests": {
+            "extra_proxies": [],
+            "jitter_seconds": 0,
+            "proxy": null,
+            "time_between_check": {
+                "weeks": null,
+                "days": null,
+                "hours": 3,
+                "minutes": null,
+                "seconds": null
+            },
+            "timeout": 45,
+            "workers": 10
+        },
+        "application": {
+            "api_access_token_enabled": true,
+            "password": false,
+            "base_url": "",
+            "extract_title_as_title": false,
+            "empty_pages_are_a_change": false,
+            "fetch_backend": "html_requests",
+            "filter_failure_notification_threshold_attempts": 6,
+            "global_ignore_text": [],
+            "global_subtractive_selectors": [],
+            "ignore_whitespace": true,
+            "render_anchor_tag_content": false,
+            "notification_urls": [],
+            "notification_title": "ChangeDetection.io Notification - {{watch_url}}",
+            "notification_body": "{{watch_url}} had a change.\n---\n{{diff}}\n---\n",
+            "notification_format": "Text",
+            "schema_version": 10,
+            "shared_diff_access": false,
+            "webdriver_delay": null,
+            "rss_access_token": "97d7fb0b67967cca94ae91fb0165808d",
+            "api_access_token": "10be71d931d14f95ad4f2b2417add5e2"
+        }
+    },
+    "build_sha": "ce3966c104638e7f602c65186df0788f4ee3f826\n",
+    "app_guid": "5118f80b-868d-4e60-942f-de0fd515f2a4",
+    "version_tag": "0.41"
+}
