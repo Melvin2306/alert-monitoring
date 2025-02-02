@@ -1,18 +1,22 @@
-version: '3'
+version: "3"
 services:
   proxy:
     container_name: torprivoxy
-    image: avpnusr/torprivoxy:latest-debian
+    image: avpnusr/torprivoxy
     restart: unless-stopped
     hostname: proxy
+    networks:
+      - internal_network
   changedetection:
-    image: ghcr.io/dgtlmoon/changedetection.io:0.41
+    image: ghcr.io/dgtlmoon/changedetection.io:latest
     restart: unless-stopped
     container_name: changedetection
     volumes:
       - ./datastore:/datastore
     ports:
       - "8080:5000"
+    networks:
+      - internal_network # Connect to the same network
     environment:
       - HIDE_REFERER=true
       - PLAYWRIGHT_DRIVER_URL=ws://playwright-chrome:3000/?stealth=1&--disable-web-security=false
@@ -35,3 +39,7 @@ services:
 
 volumes:
   changedetection-data:
+
+networks:
+  internal_network:
+    driver: bridge
