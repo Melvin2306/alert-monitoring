@@ -1,4 +1,5 @@
-version: "3"
+version: "3.8"
+
 services:
   proxy:
     container_name: torprivoxy
@@ -7,39 +8,57 @@ services:
     hostname: proxy
     networks:
       - internal_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8118/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   changedetection:
+    container_name: changedetection
     image: ghcr.io/dgtlmoon/changedetection.io:latest
     restart: unless-stopped
-    container_name: changedetection
     volumes:
       - ./datastore:/datastore
     ports:
       - "8080:5000"
     networks:
-      - internal_network # Connect to the same network
+      - internal_network
     environment:
-      - HIDE_REFERER=true
-      - PLAYWRIGHT_DRIVER_URL=ws://playwright-chrome:3000/?stealth=1&--disable-web-security=false
+      HIDE_REFERER: "true"
+      PLAYWRIGHT_DRIVER_URL: "ws://playwright-chrome:3000/?stealth=1&--disable-web-security=false"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   playwright-chrome:
     container_name: playwright
     image: browserless/chrome
     restart: unless-stopped
     environment:
-      - SCREEN_WIDTH=1920
-      - SCREEN_HEIGHT=1080
-      - SCREEN_DEPTH=16
-      - ENABLE_DEBUGGER=false
-      - PREBOOT_CHROME=true
-      - CONNECTION_TIMEOUT=300000
-      - MAX_CONCURRENT_SESSIONS=10
-      - CHROME_REFRESH_TIME=600000
-      - DEFAULT_BLOCK_ADS=true
-      - DEFAULT_STEALTH=true
-      - DEFAULT_IGNORE_HTTPS_ERRORS=true
+      SCREEN_WIDTH: "1920"
+      SCREEN_HEIGHT: "1080"
+      SCREEN_DEPTH: "16"
+      ENABLE_DEBUGGER: "false"
+      PREBOOT_CHROME: "true"
+      CONNECTION_TIMEOUT: "300000"
+      MAX_CONCURRENT_SESSIONS: "10"
+      CHROME_REFRESH_TIME: "600000"
+      DEFAULT_BLOCK_ADS: "true"
+      DEFAULT_STEALTH: "true"
+      DEFAULT_IGNORE_HTTPS_ERRORS: "true"
+    networks:
+      - internal_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   changedetection-data:
 
 networks:
   internal_network:
-    driver: bridge
