@@ -43,6 +43,9 @@ yarn-error.log*
 .idea/
 .vscode/
 
+# changedetection.io files
+datastore/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
