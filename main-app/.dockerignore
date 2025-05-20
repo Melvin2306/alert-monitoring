@@ -1,0 +1,32 @@
+# Node.js dependencies and build files
+node_modules
+.next
+out
+
+# Version control
+.git
+.gitignore
+
+# Exclude Prisma generated files from linting
+# These will be generated fresh during the build process
+**/app/generated/**/.eslintrc*
+
+# Environment files
+.env*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
