@@ -10,6 +10,27 @@ You can disable using tor for single watches by choosing "Direct" within the "Re
 
 Make sure the `proxies.json` is present in the toplevel of your datastore directory if you run into problems. The content of `proxies.json` is based on the changedetection.io documentation.
 
+## Email Configuration
+
+This application supports email notifications for website changes. To set up email notifications:
+
+1. Run the provided setup script:
+
+   ```bash
+   chmod +x setup-smtp.sh
+   ./setup-smtp.sh
+   ```
+
+2. Follow the prompts to configure your SMTP settings with your email provider.
+
+3. After configuration, restart the application to apply changes:
+
+   ```bash
+   docker compose restart main-app
+   ```
+
+For detailed instructions and troubleshooting tips, see [SMTP-SETUP.md](SMTP-SETUP.md).
+
 ## Example
 
 An example watch is provided within [`url-watches.json`](datastore/url-watches.json). It will check the Tor api and returns your exit IP and if the connection was established via the Tor nework.
