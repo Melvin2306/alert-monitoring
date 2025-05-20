@@ -45,6 +45,7 @@ yarn-error.log*
 
 # changedetection.io files
 datastore/
+datastore/url-watches.json
 
 # typescript
 *.tsbuildinfo
