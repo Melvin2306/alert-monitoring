@@ -39,6 +39,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# ide settings
+.idea/
+.vscode/
 
 # typescript
 *.tsbuildinfo
