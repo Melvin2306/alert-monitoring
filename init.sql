@@ -30,10 +30,11 @@ $$ language 'plpgsql' SECURITY DEFINER;
 CREATE TABLE IF NOT EXISTS email (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email_address VARCHAR(255) UNIQUE NOT NULL,
+    email_address_lower VARCHAR(255) GENERATED ALWAYS AS (LOWER(email_address)) STORED,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    -- Add index on email_address for faster lookups
-    CONSTRAINT email_address_lower_idx UNIQUE (LOWER(email_address))
+    -- Add index on email_address_lower for faster lookups
+    CONSTRAINT email_address_lower_idx UNIQUE (email_address_lower)
 );
 
 -- Create a trigger to call the function before update on email table
