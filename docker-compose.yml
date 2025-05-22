@@ -5,12 +5,25 @@ services:
     restart: unless-stopped
     hostname: proxy
     networks:
-      - internal_network
+      - tor_network
+      - proxy_network
+    deploy:
+      resources:
+        limits:
+          cpus: "${CPU_LIMIT}"
+          memory: "${MEMORY_LIMIT}"
     ports:
-      - "${PRIVOXY_PORT}:8118" # Privoxy port
-      - "${TOR_SOCKS_PORT}:9050" # Tor SOCKS port
+      - "127.0.0.1:${PRIVOXY_PORT}:8118" # Privoxy port - restricted to localhost
+      - "127.0.0.1:${TOR_SOCKS_PORT}:9050" # Tor SOCKS port - restricted to localhost
+      - "127.0.0.1:9051:9051" # Tor control port - needed for circuit renewal
     environment:
       TOR_CONTROL_PASSWORD: "${TOR_CONTROL_PASSWORD}"
+      TOR_CIRCUIT_BUILD_TIMEOUT: "120"
+      TOR_MAX_CIRCUIT_DIRTINESS: "3600"
+      TOR_NEW_CIRCUIT_PERIOD: "30"
+      TOR_ENTRY_GUARDS: "8"
+      TOR_ENABLE_CONTROL: "1"
+    user: "10000:10000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8118/"]
       interval: "${HEALTHCHECK_INTERVAL}"
@@ -21,12 +34,18 @@ services:
     container_name: changedetection
     image: ghcr.io/dgtlmoon/changedetection.io:latest
     restart: unless-stopped
+    user: "1000:1000"
+    deploy:
+      resources:
+        limits:
+          cpus: "${CPU_LIMIT}"
+          memory: "${MEMORY_LIMIT}"
     volumes:
       - ./datastore:/datastore
-    ports:
-      - "${CHANGEDETECTION_PORT}:5000"
     networks:
-      - internal_network
+      - proxy_network
+      - change_network
+      - browser_network
     environment:
       HIDE_REFERER: "true"
       PLAYWRIGHT_DRIVER_URL: "${PLAYWRIGHT_CHROME_URL}"
@@ -38,6 +57,17 @@ services:
       SOCKS_HOST: "proxy"
       SOCKS_PORT: "${TOR_SOCKS_PORT}"
       REQUESTS_CA_BUNDLE: "/etc/ssl/certs/ca-certificates.crt"
+      WEBDRIVER_URL_NOT_FOUND_WAIT_TIME: "300"
+      WEBDRIVER_DELAY_BEFORE_CONTENT_READY: "20"
+      WEBDRIVER_BS4_SPECIFICS: "true"
+      WEBDRIVER_TIMEOUT: "300"
+      REQUESTS_TIMEOUT: "300"
+      REQUESTS_CONNECT_TIMEOUT: "120"
+      USE_PROXY_FOR_REQUESTS: "true"
+      IGNORE_SSL_ERRORS: "true"
+      ALLOW_INSECURE_SSL: "true"
+      SSL_VERIFY: "false"
+      PROXY_BYPASS_HOSTNAMES: "localhost,127.0.0.1"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: "${HEALTHCHECK_INTERVAL}"
@@ -50,6 +80,15 @@ services:
     container_name: playwright
     image: browserless/chrome
     restart: unless-stopped
+    user: "1000:1000"
+    deploy:
+      resources:
+        limits:
+          cpus: "${CPU_LIMIT_BROWSER}"
+          memory: "${MEMORY_LIMIT_BROWSER}"
+    networks:
+      - browser_network
+      - proxy_network
     environment:
       SCREEN_WIDTH: "1920"
       SCREEN_HEIGHT: "1080"
@@ -67,10 +106,13 @@ services:
       HTTP_PROXY: "http://proxy:${PRIVOXY_PORT}"
       HTTPS_PROXY: "http://proxy:${PRIVOXY_PORT}"
       NO_PROXY: "localhost,127.0.0.1"
+      CHROME_FLAGS: "--ignore-certificate-errors --disable-web-security --disable-features=IsolateOrigins,site-per-process --proxy-bypass-list=<-loopback> --host-resolver-rules='MAP * ~NOTFOUND , EXCLUDE localhost' --disable-web-security --disable-features=OutOfBlinkCors --no-sandbox --disable-setuid-sandbox"
+      PLAYWRIGHT_BROWSERS_PATH: "/ms-playwright"
+      BROWSER_TIMEOUT: "30000"
+      METRICS_JSON_PATH: "/dev/null"
+      MAX_LISTENERS: "100"
     tmpfs:
       - /tmp
-    networks:
-      - internal_network
     depends_on:
       - proxy
     healthcheck:
@@ -85,8 +127,14 @@ services:
       context: ./main-app
       dockerfile: Dockerfile
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "${CPU_LIMIT}"
+          memory: "${MEMORY_LIMIT}"
     networks:
-      - internal_network
+      - change_network
+      - db_network
     depends_on:
       changedetection:
         condition: service_started
@@ -95,46 +143,120 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      NEXT_PUBLIC_API_URL: "${CHANGEDETECTION_URL}" # Point to the changedetection.io service
-      CHANGEDETECTION_URL: "${CHANGEDETECTION_URL}" # Internal URL for API access
+      NEXT_PUBLIC_API_URL: "/changedetection"
+      CHANGEDETECTION_URL: "${CHANGEDETECTION_URL}"
+      CHANGEDETECTION_API_KEY: "${CHANGEDETECTION_API_KEY:-}"
+      NEXT_PUBLIC_WEBSITE_URL: "${NEXT_PUBLIC_WEBSITE_URL:-https://example.com}"
       NEXT_TELEMETRY_DISABLED: "1"
       NODE_ENV: "production"
-      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}"
-      # SMTP Configuration - Can be set via .env file or when running docker-compose
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-}
-      SMTP_SECURE: ${SMTP_SECURE:-false}
-    ports:
-      - "${NEXTJS_PORT}:3000" # Expose the Next.js service
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public"
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_NAME: "${DB_NAME}"
+      DB_HOST: "postgres"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      DB_MAX_CONNECTIONS: "${DB_MAX_CONNECTIONS:-20}"
+      DB_IDLE_TIMEOUT: "${DB_IDLE_TIMEOUT:-30000}"
+      DB_CONNECT_TIMEOUT: "${DB_CONNECT_TIMEOUT:-10000}"
+      DB_USE_SSL: "${DB_USE_SSL:-false}"
+      DB_REJECT_UNAUTHORIZED: "${DB_REJECT_UNAUTHORIZED:-true}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
+      SMTP_SECURE: "${SMTP_SECURE:-false}"
+      PRIVOXY_PORT: "${PRIVOXY_PORT}"
+      TOR_SOCKS_PORT: "${TOR_SOCKS_PORT}"
+      TOR_CONTROL_PASSWORD: "${TOR_CONTROL_PASSWORD}"
+      NEXTJS_PORT: "${NEXTJS_PORT}"
+      CHANGEDETECTION_PORT: "${CHANGEDETECTION_PORT}"
+      NGINX_HTTP_PORT: "${NGINX_HTTP_PORT:-80}"
+      NGINX_HTTPS_PORT: "${NGINX_HTTPS_PORT:-443}"
 
   postgres:
     container_name: postgres
     image: postgres:16-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "${CPU_LIMIT_DB}"
+          memory: "${MEMORY_LIMIT_DB}"
     networks:
-      - internal_network
+      - db_network
+    ports:
+      - "127.0.0.1:5433:5432"
     environment:
       POSTGRES_USER: "${DB_USER}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
       POSTGRES_DB: "${DB_NAME}"
       PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "${POSTGRES_PORT}:5432" # Postgres port
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d changedetection"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: "${DB_HEALTHCHECK_INTERVAL}"
       timeout: "${DB_HEALTHCHECK_TIMEOUT}"
       retries: "${DB_HEALTHCHECK_RETRIES}"
+
+  nginx:
+    container_name: nginx-reverse-proxy
+    image: nginx:alpine
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "${CPU_LIMIT}"
+          memory: "${MEMORY_LIMIT}"
+    networks:
+      - change_network
+      - public_network
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - main-app
+      - changedetection
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: "${HEALTHCHECK_INTERVAL}"
+      timeout: "${HEALTHCHECK_TIMEOUT}"
+      retries: "${HEALTHCHECK_RETRIES}"
 
 volumes:
   changedetection-data:
   postgres-data:
 
 networks:
-  internal_network:
+  # Network for Tor connectivity to the outside world
+  tor_network:
+    name: tor_network
+    internal: false
+  # Network for services that need proxy access
+  proxy_network:
+    name: proxy_network
+    internal: true
+  # Network for browser connectivity
+  browser_network:
+    name: browser_network
+    internal: true
+  # Network for change detection connectivity
+  change_network:
+    name: change_network
+    internal: true
+  # Network for database connectivity
+  db_network:
+    name: db_network
+    internal: true
+  # Public network for nginx
+  public_network:
+    name: public_network
+    internal: false
