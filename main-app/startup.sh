@@ -13,78 +13,90 @@ update_env_file() {
   else
     echo "Environment file exists, updating configuration..."
   fi
-
-  # Create a new temporary file content in memory
-  local new_env_content=""
-  
-  # Function to add a variable to our new content only if it doesn't exist
-  add_env_var() {
-    local key=$1
-    local value=$2
-    
-    # Add the key-value pair to our content
-    new_env_content="${new_env_content}${key}=${value}
-"
-  }
   
   # Start fresh with an empty file
   > "$env_file" || { echo "Error: Cannot write to $env_file - check permissions"; return 1; }
   
-  # Update SMTP variables by writing directly to the file
-  echo "Configuring email (SMTP) settings..."
-  if [ ! -z "$SMTP_HOST" ]; then
-    echo "SMTP_HOST=$SMTP_HOST" >> "$env_file"
-    echo "- SMTP host configured"
-  fi
+  echo "Gathering all available environment variables..."
   
-  if [ ! -z "$SMTP_PORT" ]; then
-    echo "SMTP_PORT=$SMTP_PORT" >> "$env_file"
-    echo "- SMTP port configured"  
-  fi
+  # Create an associative array to track variables we've already processed
+  declare -A processed_vars
   
-  if [ ! -z "$SMTP_USER" ]; then
-    echo "SMTP_USER=$SMTP_USER" >> "$env_file"
-    echo "- SMTP username configured"
-  fi
+  # Define an array of all environment variables we want to pass
+  declare -a vars=(
+    # API Configuration
+    "CHANGEDETECTION_URL"
+    "CHANGEDETECTION_API_KEY"
+    
+    # Application Configuration
+    "NEXT_TELEMETRY_DISABLED"
+    "NODE_ENV"
+    
+    # Database Configuration
+    "DATABASE_URL"
+    "DB_USER"
+    "DB_PASSWORD"
+    "DB_NAME"
+    "DB_HOST"
+    "DB_USE_SSL"
+    "DB_REJECT_UNAUTHORIZED"
+    "DB_MAX_CONNECTIONS"
+    "DB_IDLE_TIMEOUT"
+    "DB_CONNECT_TIMEOUT"
+    
+    # SMTP Configuration
+    "SMTP_HOST"
+    "SMTP_PORT"
+    "SMTP_USER"
+    "SMTP_PASSWORD"
+    "SMTP_FROM"
+    "SMTP_SECURE"
+    
+    # Proxy Configuration
+    "PRIVOXY_PORT"
+    "TOR_SOCKS_PORT"
+    "TOR_CONTROL_PASSWORD"
+    
+    # Port Configurations
+    "NEXTJS_PORT"
+    "CHANGEDETECTION_PORT"
+    "POSTGRES_PORT"
+    "NGINX_HTTP_PORT"
+    "NGINX_HTTPS_PORT"
+  )
   
-  if [ ! -z "$SMTP_PASSWORD" ]; then
-    echo "SMTP_PASSWORD=$SMTP_PASSWORD" >> "$env_file"
-    echo "- SMTP password configured (value hidden)"
-  fi
+  # Add all NEXT_PUBLIC_ variables
+  for var in $(env | grep -o "NEXT_PUBLIC_[^=]*"); do
+    vars+=("$var")
+  done
   
-  if [ ! -z "$SMTP_FROM" ]; then
-    echo "SMTP_FROM=$SMTP_FROM" >> "$env_file"
-    echo "- SMTP from address configured"
-  fi
-  
-  if [ ! -z "$SMTP_SECURE" ]; then
-    echo "SMTP_SECURE=$SMTP_SECURE" >> "$env_file"
-    echo "- SMTP secure connection set to: $SMTP_SECURE"
-  fi
-  
-  # Make sure we keep other important variables from environment
-  echo "Configuring database connection..."
-  if [ ! -z "$DATABASE_URL" ]; then
-    echo "DATABASE_URL=$DATABASE_URL" >> "$env_file"
-    echo "- Database connection configured (connection string hidden)"
-  else
-    echo "- No database URL provided, skipping database configuration"
-  fi
-  
-  echo "Configuring ChangeDetection service..."
-  if [ ! -z "$CHANGEDETECTION_URL" ]; then
-    echo "CHANGEDETECTION_URL=$CHANGEDETECTION_URL" >> "$env_file"
-    echo "- ChangeDetection service URL configured: $CHANGEDETECTION_URL"
-  else
-    echo "- No ChangeDetection URL provided"
-  fi
-  
-  if [ ! -z "$CHANGEDETECTION_API_KEY" ]; then
-    echo "CHANGEDETECTION_API_KEY=$CHANGEDETECTION_API_KEY" >> "$env_file"
-    echo "- ChangeDetection API key configured (key hidden)"
-  else
-    echo "- No ChangeDetection API key provided"
-  fi
+  # Write all variables to the .env file if they exist, avoiding duplicates
+  for var in "${vars[@]}"; do
+    # Skip if we've already processed this variable
+    [[ -n "${processed_vars[$var]}" ]] && continue
+    
+    # Mark as processed
+    processed_vars[$var]=1
+    
+    # Get the value using indirect reference
+    val="${!var}"
+    if [ ! -z "$val" ]; then
+      # Handle special case for values with special characters
+      if [[ "$val" == *"!"* ]] || [[ "$val" == *"&"* ]] || [[ "$val" == *"#"* ]] || [[ "$val" == *"$"* ]]; then
+        # Properly escape special characters for .env file
+        echo "$var='$val'" >> "$env_file"
+      else
+        echo "$var=$val" >> "$env_file"
+      fi
+      
+      # Mask sensitive data in logs
+      if [[ "$var" == *"PASSWORD"* ]] || [[ "$var" == *"API_KEY"* ]] || [[ "$var" == "DATABASE_URL" ]]; then
+        echo "- $var configured (value hidden)"
+      else
+        echo "- $var configured: $val"
+      fi
+    fi
+  done
   
   echo "✅ Environment configuration completed successfully"
 }
