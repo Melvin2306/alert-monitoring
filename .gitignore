@@ -50,3 +50,9 @@ datastore/url-watches.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Nginx
+nginx/certs/*
+nginx/logs/*
+!nginx/certs/.gitkeep
+!nginx/logs/.gitkeep
