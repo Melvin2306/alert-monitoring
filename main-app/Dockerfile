@@ -95,14 +95,6 @@ EXPOSE 3000
 RUN echo "🔌 Exposing port 3000 for the Next.js application"
 
 ENV PORT=3000
-# SMTP environment variables with defaults
-RUN echo "📧 Setting up email configuration environment variables..."
-ENV SMTP_HOST="smtp.gmail.com"
-ENV SMTP_PORT="587"
-ENV SMTP_USER=""
-ENV SMTP_PASSWORD=""
-ENV SMTP_FROM=""
-ENV SMTP_SECURE="false"
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
