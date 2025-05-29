@@ -145,7 +145,6 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: "/changedetection"
       CHANGEDETECTION_URL: "${CHANGEDETECTION_URL}"
-      CHANGEDETECTION_API_KEY: "${CHANGEDETECTION_API_KEY:-}"
       NEXT_PUBLIC_WEBSITE_URL: "${NEXT_PUBLIC_WEBSITE_URL:-https://example.com}"
       NEXT_TELEMETRY_DISABLED: "1"
       NODE_ENV: "production"

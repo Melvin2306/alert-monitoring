@@ -26,7 +26,6 @@ update_env_file() {
   declare -a vars=(
     # API Configuration
     "CHANGEDETECTION_URL"
-    "CHANGEDETECTION_API_KEY"
     
     # Application Configuration
     "NEXT_TELEMETRY_DISABLED"
