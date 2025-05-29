@@ -57,8 +57,7 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Error fetching keyword:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to fetch keyword" },
       { status: 500 }
@@ -98,8 +97,7 @@ export async function POST(request: NextRequest) {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
-      console.error("Error parsing JSON:", error);
+    } catch {
       return NextResponse.json(
         { success: false, message: "Invalid JSON in request body" },
         { status: 400 }
@@ -171,14 +169,12 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         );
       }
-      console.error("Database error saving keyword:", error);
       return NextResponse.json(
         { success: false, message: "Failed to save keyword to database" },
         { status: 500 }
       );
     }
-  } catch (error) {
-    console.error("Error processing keyword addition:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to process request" },
       { status: 500 }
@@ -225,8 +221,7 @@ export async function PUT(request: NextRequest) {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
-      console.error("Error parsing JSON:", error);
+    } catch {
       return NextResponse.json(
         { success: false, message: "Invalid JSON in request body" },
         { status: 400 }
@@ -308,7 +303,6 @@ export async function PUT(request: NextRequest) {
         { status: 200 }
       );
     } catch (error) {
-      console.error("Database error during keyword update:", error);
       if (error instanceof DatabaseError && error.code === "23505") {
         return NextResponse.json(
           { success: false, message: "This keyword already exists" },
@@ -320,8 +314,7 @@ export async function PUT(request: NextRequest) {
         { status: 500 }
       );
     }
-  } catch (error) {
-    console.error("Error processing keyword update:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to process keyword update" },
       { status: 500 }
@@ -365,7 +358,6 @@ export async function DELETE(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error processing keyword deletion:", error);
     if (error instanceof DatabaseError) {
       return NextResponse.json(
         { success: false, message: `Database error: ${error.message}` },

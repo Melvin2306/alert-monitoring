@@ -5,7 +5,7 @@
  * This endpoint communicates with the changedetection.io API to retrieve all watched URLs
  */
 
-import { getApiKeyOrErrorResponse } from "@/app/api/lib/utils";
+import { withApiKeyAuth } from "@/app/api/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -31,11 +31,12 @@ const CHANGEDETECTION_SEARCH_URL = `${CHANGEDETECTION_BASE_URL}/api/v1/search`;
  * to retrieve information about all URLs being monitored.
  *
  * @param {NextRequest} req - The incoming request object containing query parameters
+ * @param {string} apiKey - The decoded API key from the request header
  * @returns {Promise<NextResponse>} JSON response with format:
  *   { message: string, watches: Array<{id, url, title, lastChecked, lastChanged, hasError, errorText}> }
  * @throws Will return error response if the external API request fails
  */
-export async function GET(req: NextRequest) {
+export const GET = withApiKeyAuth(async (req: NextRequest, apiKey: string) => {
   try {
     // Parse and validate query parameters
     const { searchParams } = new URL(req.url);
@@ -64,13 +65,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Send the request to changedetection.io to get all watches
-    // Get the API key
-    const apiKeyOrError = getApiKeyOrErrorResponse(req);
-    if (apiKeyOrError instanceof NextResponse) {
-      return apiKeyOrError; // Return the error response if API key retrieval failed
-    }
-    const apiKey = apiKeyOrError;
-
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
@@ -83,8 +77,7 @@ export async function GET(req: NextRequest) {
     try {
       const responseText = await response.text();
       data = responseText ? JSON.parse(responseText) : {};
-    } catch (e) {
-      console.error("Error parsing response as JSON:", e);
+    } catch {
       return NextResponse.json(
         { message: "Invalid response from changedetection.io API" },
         { status: 500 }
@@ -130,11 +123,10 @@ export async function GET(req: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Error retrieving monitored URLs:", error);
+  } catch {
     return NextResponse.json({ message: "Failed to retrieve monitored URLs" }, { status: 500 });
   }
-}
+});
 
 /**
  * Search for watches by URL or title text
@@ -143,11 +135,12 @@ export async function GET(req: NextRequest) {
  * This endpoint accepts search criteria and communicates with the changedetection.io API
  *
  * @param {NextRequest} req - The incoming request object containing search parameters
+ * @param {string} apiKey - The decoded API key from the request header
  * @returns {Promise<NextResponse>} JSON response with format:
  *   { message: string, watches: Array<{id, url, title, lastChecked, lastChanged, hasError, errorText, status}> }
  * @throws Will return error response if the external API request fails or search parameters are invalid
  */
-export async function POST(req: NextRequest) {
+export const POST = withApiKeyAuth(async (req: NextRequest, apiKey: string) => {
   try {
     // Check content type for security
     const contentType = req.headers.get("content-type");
@@ -168,8 +161,7 @@ export async function POST(req: NextRequest) {
     let body;
     try {
       body = await req.json();
-    } catch (error) {
-      console.error("Error parsing request body:", error);
+    } catch {
       return NextResponse.json({ message: "Invalid JSON in request body" }, { status: 400 });
     }
 
@@ -204,12 +196,6 @@ export async function POST(req: NextRequest) {
     const apiUrl = `${CHANGEDETECTION_SEARCH_URL}?${queryParams.toString()}`;
 
     // Send the request to changedetection.io to search for watches
-    const apiKeyOrError = getApiKeyOrErrorResponse(req);
-    if (apiKeyOrError instanceof NextResponse) {
-      return apiKeyOrError; // Return the error response if API key retrieval failed
-    }
-    const apiKey = apiKeyOrError;
-
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
@@ -222,8 +208,7 @@ export async function POST(req: NextRequest) {
     try {
       const responseText = await response.text();
       data = responseText ? JSON.parse(responseText) : {};
-    } catch (e) {
-      console.error("Error parsing response as JSON:", e);
+    } catch {
       return NextResponse.json(
         { message: "Invalid response from changedetection.io API" },
         { status: 500 }
@@ -266,8 +251,7 @@ export async function POST(req: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Error searching monitored URLs:", error);
+  } catch {
     return NextResponse.json({ message: "Failed to search monitored URLs" }, { status: 500 });
   }
-}
+});

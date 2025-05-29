@@ -31,8 +31,7 @@ export async function GET() {
     }));
 
     return NextResponse.json({ success: true, data: keywords }, { status: 200 });
-  } catch (error) {
-    console.error("Database error fetching keywords:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to fetch keywords from database" },
       { status: 500 }

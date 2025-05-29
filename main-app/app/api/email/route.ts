@@ -54,8 +54,7 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Error fetching email:", error);
+  } catch {
     return NextResponse.json({ success: false, message: "Failed to fetch email" }, { status: 500 });
   }
 }
@@ -92,8 +91,7 @@ export async function POST(request: NextRequest) {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
-      console.error("Error parsing JSON:", error);
+    } catch {
       return NextResponse.json(
         { success: false, message: "Invalid JSON in request body" },
         { status: 400 }
@@ -135,14 +133,12 @@ export async function POST(request: NextRequest) {
         [email]
       );
 
-      console.log("Email subscription saved to database:", result.rows[0]);
       return NextResponse.json({
         success: true,
         message: "Email subscription saved successfully",
         data: result.rows[0],
       });
     } catch (error) {
-      console.error("Database error during email subscription:", error);
       if (
         error instanceof DatabaseError &&
         error.code === "23505" &&
@@ -161,8 +157,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-  } catch (error) {
-    console.error("Subscription error:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to process subscription" },
       { status: 500 }
@@ -210,8 +205,7 @@ export async function PUT(request: NextRequest) {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
-      console.error("Error parsing JSON:", error);
+    } catch {
       return NextResponse.json(
         { success: false, message: "Invalid JSON in request body" },
         { status: 400 }
@@ -284,7 +278,6 @@ export async function PUT(request: NextRequest) {
         { status: 200 }
       );
     } catch (error) {
-      console.error("Database error during email update:", error);
       if (
         error instanceof DatabaseError &&
         error.code === "23505" &&
@@ -300,8 +293,7 @@ export async function PUT(request: NextRequest) {
         { status: 500 }
       );
     }
-  } catch (error) {
-    console.error("Error processing email update:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to process email update" },
       { status: 500 }
@@ -342,7 +334,6 @@ export async function DELETE(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error processing email deletion:", error);
     if (error instanceof DatabaseError) {
       return NextResponse.json(
         { success: false, message: `Database error: ${error.message}` },

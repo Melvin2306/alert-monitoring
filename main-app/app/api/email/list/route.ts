@@ -23,8 +23,7 @@ export async function GET() {
       success: true,
       data: result.rows,
     });
-  } catch (error) {
-    console.error("Error fetching email subscriptions:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to fetch email subscriptions" },
       { status: 500 }
