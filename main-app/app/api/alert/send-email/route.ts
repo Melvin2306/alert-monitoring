@@ -9,7 +9,7 @@
 import { getApiKeyOrErrorResponse } from "@/app/api/lib/changeDetection";
 import pool from "@/app/api/lib/db";
 import { createFinding, sendAlertEmail } from "@/app/api/lib/email/sendEmail";
-import { WatchMatch } from "@/app/api/lib/types/changeDetection";
+import type { SendEmailRequest, WatchMatch } from "@/app/api/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -251,18 +251,6 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Request body interface for sending email alerts manually
- */
-interface SendEmailRequest {
-  matches?: WatchMatch[]; // Optional pre-defined matches
-  checkRecent?: boolean; // Whether to check only recent changes
-  hours?: number; // Timeframe for recent changes
-  testMode?: boolean; // Whether to run in test mode
-  testEmail?: string; // Test email to use in test mode
-  customSubject?: string; // Custom email subject
 }
 
 /**

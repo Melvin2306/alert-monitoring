@@ -1,26 +1,5 @@
+import type { SMTPStatusResponse } from "@/app/api/lib/types";
 import { NextResponse } from "next/server";
-
-/**
- * Response interface for SMTP configuration status
- */
-export interface SMTPStatusResponse {
-  /** Whether all required SMTP variables are configured */
-  isConfigured: boolean;
-  /** SMTP server hostname */
-  smtp_host: string;
-  /** SMTP server port number */
-  smtp_port: number;
-  /** SMTP username/email */
-  smtp_user: string;
-  /** SMTP "from" email address */
-  smtp_from: string;
-  /** Whether SMTP uses secure connection (TLS/SSL) */
-  smtp_secure: boolean;
-  /** List of missing required environment variables with descriptions */
-  missingVariables: string[];
-  /** List of configured environment variables with their values (passwords masked) */
-  configuredVariables: string[];
-}
 
 /**
  * GET /api/smtp/status

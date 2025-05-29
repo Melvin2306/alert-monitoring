@@ -2,7 +2,7 @@
  * Functions for interacting with the changedetection.io API
  */
 import { NextRequest, NextResponse } from "next/server";
-import { WatchInfo } from "./types/changeDetection";
+import { WatchInfo } from "./types";
 
 // Access environment variables for API configuration
 const CHANGEDETECTION_BASE_URL = process.env.CHANGEDETECTION_URL || "http://localhost:8080";

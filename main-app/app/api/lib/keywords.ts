@@ -1,9 +1,9 @@
 /**
  * Functions for keyword-related operations
  */
-import pool from "./db";
-import { KeywordInfo, KeywordMatch } from "./types/changeDetection";
 import { NextResponse } from "next/server";
+import pool from "./db";
+import { KeywordInfo, KeywordMatch } from "./types";
 
 /**
  * Fetch all keywords from the database

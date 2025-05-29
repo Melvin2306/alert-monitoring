@@ -8,15 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-interface DeleteConfirmationDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onCancel: () => void;
-  onDelete: () => void;
-  title?: string;
-  description?: string;
-}
+import type { DeleteConfirmationDialogProps } from "@/lib/types";
 
 export default function DeleteConfirmationDialog({
   isOpen,

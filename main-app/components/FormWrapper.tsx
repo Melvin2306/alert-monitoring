@@ -1,22 +1,10 @@
 "use client";
 
-import { ReactNode } from "react";
+import type { FormWrapperProps } from "@/lib/types";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-
-interface FormWrapperProps {
-  title: string;
-  children: ReactNode;
-  onSubmit: () => Promise<Response>;
-  isSubmitting: boolean;
-  loadingMessage: string;
-  successMessage: string;
-  errorMessage: string;
-  submitButtonText: string;
-  isValid?: boolean;
-}
 
 /**
  * A reusable form wrapper component for consistent form styling and behavior

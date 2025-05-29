@@ -5,19 +5,9 @@
  * This endpoint communicates with the changedetection.io API to retrieve all watched URLs
  */
 
+import type { WatchInfo } from "@/app/api/lib/types";
 import { withApiKeyAuth } from "@/app/api/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
-
-/**
- * Interface representing watch information from changedetection.io API
- */
-interface WatchInfo {
-  url: string;
-  title?: string;
-  last_checked?: number;
-  last_changed?: number;
-  last_error?: string | boolean;
-}
 
 // Access environment variables for API configuration
 const CHANGEDETECTION_BASE_URL = process.env.CHANGEDETECTION_URL || "http://localhost:8080";

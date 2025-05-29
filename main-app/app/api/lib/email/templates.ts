@@ -2,18 +2,7 @@
  * Email templates for various parts of notification emails
  * Contains both plain text and HTML versions
  */
-
-export interface TemplateVariables {
-  email?: string;
-  url?: string;
-  findingTime?: string;
-  keywords?: string[];
-  totalFindings?: number;
-  siteName?: string;
-  emailId?: string;
-  context?: string;
-  highlightedContext?: string;
-}
+import type { TemplateVariables } from "../types";
 
 // Helper function to extract username from email address
 const extractUserNameFromEmail = (email: string): string => {

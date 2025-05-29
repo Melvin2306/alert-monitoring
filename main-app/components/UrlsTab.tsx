@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { SortDirection, UrlSortField, UrlsTabProps } from "@/lib/types";
 import { getChangeDetectionBaseUrl } from "@/lib/utils";
 import {
   AlertCircle,
@@ -27,30 +28,6 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-type Url = {
-  id: string;
-  url: string;
-  title?: string;
-  lastChecked?: string | null;
-  lastChanged?: string | null;
-  status?: "unchanged" | "changed" | "error" | "pending";
-  errorText?: string | null;
-};
-
-interface UrlsTabProps {
-  urls: Url[];
-  loading: boolean;
-  error: string;
-  formatDate: (dateString: string | null | undefined) => string;
-  getStatusColor: (status?: string) => string;
-  handleRefreshAllUrls: () => Promise<void>;
-  handleRefreshUrl: (id: string) => Promise<void>;
-  confirmDelete: (type: "email" | "url" | "keyword", id: string) => void;
-}
-
-type SortField = "url" | "title" | "lastChecked" | "lastChanged" | "status";
-type SortDirection = "asc" | "desc";
-
 export default function UrlsTab({
   urls,
   loading,
@@ -61,13 +38,13 @@ export default function UrlsTab({
   handleRefreshUrl,
   confirmDelete,
 }: UrlsTabProps) {
-  const [sortField, setSortField] = useState<SortField>("url");
+  const [sortField, setSortField] = useState<UrlSortField>("url");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // Handle sorting
-  const handleSort = (field: SortField) => {
+  const handleSort = (field: UrlSortField) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {

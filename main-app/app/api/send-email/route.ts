@@ -8,40 +8,9 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 // Import email utilities
+import type { EmailSendRequest } from "@/app/api/lib/types";
 import { buildAlertEmail } from "../lib/email/emailBuilder";
 import { formatDate } from "../lib/email/sendEmail";
-
-// Regular email request type
-type EmailRequest = {
-  subject: string;
-  body?: string; // Legacy field for backward compatibility
-  html?: string; // HTML version of the message
-  text?: string; // Plain text version of the message
-  email_address: string;
-  cc?: string[];
-  bcc?: string[];
-  replyTo?: string;
-  priority?: "high" | "normal" | "low";
-  attachments?: Array<{
-    filename?: string;
-    content?: string | Buffer;
-    path?: string;
-    contentType?: string;
-    cid?: string;
-  }>;
-  headers?: Record<string, string> | Array<{ key: string; value: string }>;
-  // New fields for template-based emails
-  useTemplate?: boolean;
-  templateData?: {
-    email?: string;
-    findings?: Array<{
-      url: string;
-      keywords: string[];
-      timestamp?: string;
-      siteName?: string;
-    }>;
-  };
-};
 
 // Get SMTP configuration from environment variables
 const SMTP_HOST = process.env.SMTP_HOST || "";
@@ -67,7 +36,7 @@ export async function POST(request: Request) {
       headers,
       useTemplate,
       templateData,
-    }: EmailRequest = await request.json();
+    }: EmailSendRequest = await request.json();
 
     // Ensure the request body is in JSON format
     if (!request.headers.get("Content-Type")?.includes("application/json")) {

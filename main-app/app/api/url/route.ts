@@ -6,6 +6,7 @@
  * Implements full CRUD operations for URL watches with appropriate validation.
  */
 
+import type { UrlRequestBody } from "@/app/api/lib/types";
 import { addApiKeyToHeaders, withApiKeyAuth } from "@/app/api/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -59,7 +60,7 @@ function sanitizeInput(input: string): string {
 export const POST = withApiKeyAuth(async (req: NextRequest, apiKey: string) => {
   try {
     // Parse the incoming request body
-    const body = await req.json();
+    const body: UrlRequestBody = await req.json();
     const { url, title } = body;
 
     // Validate required fields

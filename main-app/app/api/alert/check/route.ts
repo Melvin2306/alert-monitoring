@@ -12,7 +12,7 @@ import {
   getApiKeyOrErrorResponse,
 } from "@/app/api/lib/changeDetection";
 import { extractKeywordContexts, fetchKeywords, findKeywordsInText } from "@/app/api/lib/keywords";
-import { WatchMatch } from "@/app/api/lib/types/changeDetection";
+import { WatchMatch } from "@/app/api/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 
 /**

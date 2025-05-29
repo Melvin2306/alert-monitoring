@@ -1,20 +1,8 @@
 /**
  * Utility functions for sending emails using the API
  */
-import { buildAlertEmail, EmailOptions, Finding } from "./emailBuilder";
-
-/**
- * Configuration options for sending an alert email
- */
-export interface SendAlertOptions extends EmailOptions {
-  subject?: string;
-  recipients: string[];
-  cc?: string[];
-  bcc?: string[];
-  replyTo?: string;
-  priority?: "high" | "normal" | "low";
-  emailId?: string;
-}
+import type { Finding, SendAlertOptions } from "../types";
+import { buildAlertEmail } from "./emailBuilder";
 
 /**
  * Format date for email display

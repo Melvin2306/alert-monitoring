@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { EmailSortField, EmailsTabProps, SortDirection } from "@/lib/types";
 import {
   AlertCircle,
   ArrowDown,
@@ -25,23 +26,6 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-type Email = {
-  id: string;
-  email: string;
-  createdAt: string;
-};
-
-interface EmailsTabProps {
-  emails: Email[];
-  loading: boolean;
-  error: string;
-  formatDate: (dateString: string | null | undefined) => string;
-  confirmDelete: (type: "email" | "url" | "keyword", id: string) => void;
-}
-
-type SortField = "email" | "createdAt";
-type SortDirection = "asc" | "desc";
-
 export default function EmailsTab({
   emails,
   loading,
@@ -49,13 +33,13 @@ export default function EmailsTab({
   formatDate,
   confirmDelete,
 }: EmailsTabProps) {
-  const [sortField, setSortField] = useState<SortField>("email");
+  const [sortField, setSortField] = useState<EmailSortField>("email");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // Handle sorting
-  const handleSort = (field: SortField) => {
+  const handleSort = (field: EmailSortField) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {

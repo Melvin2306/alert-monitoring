@@ -1,4 +1,5 @@
 "use client";
+import type { SMTPStatusResponse } from "@/lib/types";
 import { AlertTriangle, ArrowRight, CheckCircle, FileText, Loader2, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -14,17 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-interface SMTPStatusResponse {
-  isConfigured: boolean;
-  smtp_host: string;
-  smtp_port: number;
-  smtp_user: string;
-  smtp_from: string;
-  smtp_secure: boolean;
-  missingVariables: string[];
-  configuredVariables: string[];
-}
 
 const SetupEmail = () => {
   const [setupComplete, setSetupComplete] = useState<boolean>(false);

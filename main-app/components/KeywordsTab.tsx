@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { KeywordSortField, KeywordTabProps, SortDirection } from "@/lib/types";
 import {
   AlertCircle,
   ArrowDown,
@@ -25,24 +26,6 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-type Keyword = {
-  id: string;
-  keyword: string;
-  category?: string;
-  createdAt: string;
-};
-
-interface KeywordTabProps {
-  keywords: Keyword[];
-  loading: boolean;
-  error: string;
-  formatDate: (dateString: string | null | undefined) => string;
-  confirmDelete: (type: "email" | "url" | "keyword", id: string) => void;
-}
-
-type SortField = "keyword" | "category" | "createdAt";
-type SortDirection = "asc" | "desc";
-
 export default function KeywordTab({
   keywords,
   loading,
@@ -50,13 +33,13 @@ export default function KeywordTab({
   formatDate,
   confirmDelete,
 }: KeywordTabProps) {
-  const [sortField, setSortField] = useState<SortField>("keyword");
+  const [sortField, setSortField] = useState<KeywordSortField>("keyword");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // Handle sorting
-  const handleSort = (field: SortField) => {
+  const handleSort = (field: KeywordSortField) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {

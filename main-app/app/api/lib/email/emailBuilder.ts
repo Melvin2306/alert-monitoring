@@ -1,6 +1,7 @@
 /**
  * Email builder service to construct complete email content from templates
  */
+import type { EmailOptions } from "../types";
 import {
   actionInstructions,
   alertIntro,
@@ -11,21 +12,6 @@ import {
   singleFinding,
   unsubscribeFooter,
 } from "./templates";
-
-export interface Finding {
-  url: string;
-  findingTime: string;
-  keywords: string[];
-  siteName?: string;
-  context?: string;
-  highlightedContext?: string;
-}
-
-export interface EmailOptions {
-  email?: string;
-  findings: Finding[];
-  emailId?: string;
-}
 
 /**
  * Builds a complete email with all necessary parts for notifications

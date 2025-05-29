@@ -5,6 +5,7 @@
  */
 
 import pool from "@/app/api/lib/db"; // Import the pg pool
+import type { EmailRequestBody, EmailUpdateRequestBody } from "@/app/api/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 import { DatabaseError } from "pg"; // Import DatabaseError
 
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse and validate request body
-    let body;
+    let body: EmailRequestBody;
     try {
       body = await request.json();
     } catch {
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const email = body.email as string;
+    const email = body.email;
 
     // Validate email presence
     if (!email) {
@@ -202,7 +203,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Parse and validate request body
-    let body;
+    let body: EmailUpdateRequestBody;
     try {
       body = await request.json();
     } catch {

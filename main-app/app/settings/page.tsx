@@ -10,20 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SMTPStatusResponse } from "@/lib/types";
 import { ArrowRight, KeyRound, Mail, RefreshCw, Shield } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-interface SMTPStatusResponse {
-  isConfigured: boolean;
-  smtp_host: string;
-  smtp_port: number;
-  smtp_user: string;
-  smtp_from: string;
-  smtp_secure: boolean;
-  missingVariables: string[];
-  configuredVariables: string[];
-}
 
 export default function SettingsPage() {
   // State to track API key from localStorage

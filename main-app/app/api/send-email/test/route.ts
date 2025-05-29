@@ -4,6 +4,7 @@
  * Simplified endpoint for testing email functionality with debug logging
  */
 
+import type { EmailTestRequest } from "@/app/api/lib/types";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
@@ -14,13 +15,6 @@ const SMTP_USER = process.env.SMTP_USER || "";
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD || "";
 const SMTP_FROM = process.env.SMTP_FROM || "";
 const SMTP_SECURE = process.env.SMTP_SECURE === "true";
-
-// Simple test request type
-type EmailTestRequest = {
-  to: string;
-  message: string;
-  subject?: string;
-};
 
 export async function POST(request: Request) {
   console.log("📧 Email test route called");

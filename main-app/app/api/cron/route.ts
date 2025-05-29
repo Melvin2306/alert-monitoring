@@ -25,28 +25,8 @@ const KEYWORDS = [
   "layoff",
 ];
 
-/**
- * Interface representing watch information from changedetection.io API
- */
-interface WatchInfo {
-  url: string;
-  title?: string;
-  last_changed?: number; // Unix timestamp of last detected change
-  last_checked?: number; // Unix timestamp of last check
-  last_error?: boolean | string; // Error information if the last check failed
-  uuid?: string; // Unique identifier for the watch
-}
-
-/**
- * Interface representing a change that matched our keyword criteria
- */
-interface MatchedChange {
-  url: string; // URL of the monitored page
-  title: string; // Title of the monitored page
-  matchedKeywords: string[]; // List of keywords that were matched
-  matchedText: string[]; // Snippets of text containing matched keywords
-  lastChanged: string; // ISO timestamp of when the change was detected
-}
+// Import types from central types file
+import type { MatchedChange, WatchInfo } from "@/app/api/lib/types";
 
 /**
  * GET endpoint handler for the cron job

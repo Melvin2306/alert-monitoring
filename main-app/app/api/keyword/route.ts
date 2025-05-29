@@ -5,6 +5,7 @@
  */
 
 import pool from "@/app/api/lib/db";
+import type { KeywordRequestBody } from "@/app/api/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 import { DatabaseError } from "pg";
 
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse and validate request body
-    let body;
+    let body: KeywordRequestBody;
     try {
       body = await request.json();
     } catch {
@@ -104,10 +105,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { keyword, category } = body as {
-      keyword: string;
-      category?: string;
-    };
+    const { keyword, category } = body;
 
     // Validate keyword presence and format
     if (!keyword || typeof keyword !== "string" || keyword.trim().length === 0) {
