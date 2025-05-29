@@ -80,13 +80,13 @@ export const getChangeDetectionBaseUrl = (): string => {
     // Dynamic URL generation based on current domain
     const currentHost = window.location.host;
     const protocol = window.location.protocol;
-    
+
     // If we're on localhost, use monitor.localhost
-    if (currentHost.includes('localhost')) {
+    if (currentHost.includes("localhost")) {
       const dynamicUrl = `${protocol}//monitor.localhost`;
       return dynamicUrl;
     }
-    
+
     // For any other domain, prepend "monitor." to the current host
     const dynamicUrl = `${protocol}//monitor.${currentHost}`;
     return dynamicUrl;
