@@ -10,8 +10,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${CPU_LIMIT}"
-          memory: "${MEMORY_LIMIT}"
+          cpus: "${CPU_LIMIT_TORPROXY}"
+          memory: "${MEMORY_LIMIT_TORPROXY}"
     ports:
       - "127.0.0.1:${PRIVOXY_PORT}:8118" # Privoxy port - restricted to localhost
       - "127.0.0.1:${TOR_SOCKS_PORT}:9050" # Tor SOCKS port - restricted to localhost
@@ -42,8 +42,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${CPU_LIMIT}"
-          memory: "${MEMORY_LIMIT}"
+          cpus: "${CPU_LIMIT_CHANGEDETECTION}"
+          memory: "${MEMORY_LIMIT_CHANGEDETECTION}"
     volumes:
       - ./datastore:/datastore
     networks:
@@ -132,8 +132,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${CPU_LIMIT}"
-          memory: "${MEMORY_LIMIT}"
+          cpus: "${CPU_LIMIT_NEXTJS}"
+          memory: "${MEMORY_LIMIT_NEXTJS}"
     networks:
       - change_network
       - db_network
@@ -183,8 +183,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${CPU_LIMIT_DB}"
-          memory: "${MEMORY_LIMIT_DB}"
+          cpus: "${CPU_LIMIT_POSTGRES}"
+          memory: "${MEMORY_LIMIT_POSTGRES}"
     networks:
       - db_network
     ports:
@@ -212,8 +212,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${CPU_LIMIT}"
-          memory: "${MEMORY_LIMIT}"
+          cpus: "${CPU_LIMIT_NGINX}"
+          memory: "${MEMORY_LIMIT_NGINX}"
     networks:
       - change_network
       - public_network
