@@ -9,27 +9,31 @@ const CHANGEDETECTION_BASE_URL = process.env.CHANGEDETECTION_URL || "http://loca
 const CHANGEDETECTION_WATCH_URL = `${CHANGEDETECTION_BASE_URL}/api/v1/watch`;
 
 /**
- * Helper function to retrieve API key from request or environment
+ * Helper function to retrieve API key from request headers
  * @param {NextRequest} req - The incoming request object
  * @returns {string | NextResponse} - API key or error response
  */
 export function getApiKeyOrErrorResponse(req: NextRequest): string | NextResponse {
-  // Try to get API key from request header
-  const apiKey = req.headers.get("x-api-key");
-  
-  // If no API key in header, try environment variable
-  if (!apiKey) {
-    const envApiKey = process.env.CHANGEDETECTION_API_KEY;
-    if (!envApiKey) {
-      return NextResponse.json(
-        { message: "API key is required" },
-        { status: 401 }
-      );
-    }
-    return envApiKey;
+  // Get base64 encoded API key from request headers
+  const encodedApiKey = req.headers.get("x-api-key");
+
+  if (!encodedApiKey) {
+    return NextResponse.json(
+      { message: "API key is required. Please provide it in the x-api-key header." },
+      { status: 401 }
+    );
   }
-  
-  return apiKey;
+
+  // Decode the base64 API key
+  try {
+    const apiKey = Buffer.from(encodedApiKey, "base64").toString("utf-8");
+    return apiKey;
+  } catch {
+    return NextResponse.json(
+      { message: "Invalid API key format. Please provide a valid base64 encoded API key." },
+      { status: 401 }
+    );
+  }
 }
 
 /**
@@ -37,7 +41,9 @@ export function getApiKeyOrErrorResponse(req: NextRequest): string | NextRespons
  * @param {string} apiKey - The API key for changedetection.io
  * @returns {Promise<Record<string, WatchInfo> | NextResponse>} - Watches or error response
  */
-export async function fetchWatches(apiKey: string): Promise<Record<string, WatchInfo> | NextResponse> {
+export async function fetchWatches(
+  apiKey: string
+): Promise<Record<string, WatchInfo> | NextResponse> {
   try {
     const watchesResponse = await fetch(CHANGEDETECTION_WATCH_URL, {
       method: "GET",
@@ -45,23 +51,22 @@ export async function fetchWatches(apiKey: string): Promise<Record<string, Watch
         "x-api-key": apiKey,
       },
     });
-    
+
     if (!watchesResponse.ok) {
       const errorText = await watchesResponse.text();
       throw new Error(`Failed to fetch watches: Status ${watchesResponse.status} - ${errorText}`);
     }
-    
+
     const watchesText = await watchesResponse.text();
     return JSON.parse(watchesText);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error("Error fetching watches from changedetection.io:", errorMessage);
-    
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
     return NextResponse.json(
-      { 
-        message: "Failed to fetch monitored URLs", 
+      {
+        message: "Failed to fetch monitored URLs",
         details: errorMessage,
-        url: CHANGEDETECTION_WATCH_URL
+        url: CHANGEDETECTION_WATCH_URL,
       },
       { status: 500 }
     );
@@ -76,20 +81,22 @@ export async function fetchWatches(apiKey: string): Promise<Record<string, Watch
  */
 export async function fetchLatestSnapshot(uuid: string, apiKey: string): Promise<string | null> {
   try {
-    const historyResponse = await fetch(`${CHANGEDETECTION_WATCH_URL}/${uuid}/history/latest?html=1`, {
-      method: "GET",
-      headers: {
-        "x-api-key": apiKey,
-      },
-    });
-    
+    const historyResponse = await fetch(
+      `${CHANGEDETECTION_WATCH_URL}/${uuid}/history/latest?html=1`,
+      {
+        method: "GET",
+        headers: {
+          "x-api-key": apiKey,
+        },
+      }
+    );
+
     if (!historyResponse.ok) {
       return null;
     }
-    
+
     return await historyResponse.text();
-  } catch (error) {
-    console.error(`Error fetching snapshot for watch ${uuid}:`, error);
+  } catch {
     return null;
   }
 }
