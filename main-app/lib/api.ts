@@ -95,9 +95,6 @@ export const refreshUrl = async (id: string): Promise<Url[]> => {
     );
   }
 
-  // Log success without trying to parse the response again
-  console.log("Refresh triggered successfully");
-
   // Give the system a moment to process the recheck request
   // Then fetch the updated data after a short delay
   return new Promise((resolve, reject) => {

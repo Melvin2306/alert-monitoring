@@ -57,7 +57,7 @@ export function createFinding(
     findingTime: formatDate(timestamp || new Date()),
     siteName,
     context,
-    highlightedContext
+    highlightedContext,
   };
 }
 
@@ -109,7 +109,6 @@ export async function sendAlertEmail(options: SendAlertOptions): Promise<Respons
 
     return await response.json();
   } catch (error) {
-    console.error("Error sending alert email:", error);
     throw error;
   }
 }
