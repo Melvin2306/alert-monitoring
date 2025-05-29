@@ -16,6 +16,8 @@ services:
       - "127.0.0.1:${PRIVOXY_PORT}:8118" # Privoxy port - restricted to localhost
       - "127.0.0.1:${TOR_SOCKS_PORT}:9050" # Tor SOCKS port - restricted to localhost
       - "127.0.0.1:9051:9051" # Tor control port - needed for circuit renewal
+    volumes:
+      - tor-data:/home/tordocker/.tor
     environment:
       TOR_CONTROL_PASSWORD: "${TOR_CONTROL_PASSWORD}"
       TOR_CIRCUIT_BUILD_TIMEOUT: "120"
@@ -23,6 +25,8 @@ services:
       TOR_NEW_CIRCUIT_PERIOD: "30"
       TOR_ENTRY_GUARDS: "8"
       TOR_ENABLE_CONTROL: "1"
+      HOME: "/home/tordocker"
+      TOR_DATA_DIRECTORY: "/home/tordocker/.tor"
     user: "10000:10000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8118/"]
@@ -48,7 +52,7 @@ services:
       - browser_network
     environment:
       HIDE_REFERER: "true"
-      PLAYWRIGHT_DRIVER_URL: "${PLAYWRIGHT_CHROME_URL}"
+      PLAYWRIGHT_DRIVER_URL: "ws://playwright-chrome:3000"
       FETCH_BACKEND: "html_webdriver"
       DEFAULT_FETCH_BACKEND: "html_webdriver"
       HTTP_PROXY: "http://proxy:${PRIVOXY_PORT}"
@@ -90,23 +94,21 @@ services:
       - browser_network
       - proxy_network
     environment:
+      PORT: "3000"
       SCREEN_WIDTH: "1920"
       SCREEN_HEIGHT: "1080"
       SCREEN_DEPTH: "16"
+      CHROME_FLAGS: "--ignore-certificate-errors --disable-web-security --disable-features=IsolateOrigins,site-per-process --no-sandbox --disable-setuid-sandbox --proxy-server=http://proxy:8118 --proxy-bypass-list=localhost,127.0.0.1"
       ENABLE_DEBUGGER: "false"
       PREBOOT_CHROME: "true"
-      CONNECTION_TIMEOUT: "300000"
-      MAX_CONCURRENT_SESSIONS: "10"
+      CONNECTION_TIMEOUT: "120000"
+      MAX_CONCURRENT_SESSIONS: "5"
       CHROME_REFRESH_TIME: "600000"
       DEFAULT_BLOCK_ADS: "true"
       DEFAULT_STEALTH: "true"
       DEFAULT_IGNORE_HTTPS_ERRORS: "true"
       SCREENSHOT_FULLPAGE: "true"
       STATS_REFRESH_SECONDS: "120"
-      HTTP_PROXY: "http://proxy:${PRIVOXY_PORT}"
-      HTTPS_PROXY: "http://proxy:${PRIVOXY_PORT}"
-      NO_PROXY: "localhost,127.0.0.1"
-      CHROME_FLAGS: "--ignore-certificate-errors --disable-web-security --disable-features=IsolateOrigins,site-per-process --proxy-bypass-list=<-loopback> --host-resolver-rules='MAP * ~NOTFOUND , EXCLUDE localhost' --disable-web-security --disable-features=OutOfBlinkCors --no-sandbox --disable-setuid-sandbox"
       PLAYWRIGHT_BROWSERS_PATH: "/ms-playwright"
       BROWSER_TIMEOUT: "30000"
       METRICS_JSON_PATH: "/dev/null"
@@ -234,6 +236,7 @@ services:
 volumes:
   changedetection-data:
   postgres-data:
+  tor-data:
 
 networks:
   # Network for Tor connectivity to the outside world
