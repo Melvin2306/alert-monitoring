@@ -14,22 +14,53 @@ import { ArrowRight, KeyRound, Mail, RefreshCw, Shield } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+interface SMTPStatusResponse {
+  isConfigured: boolean;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_user: string;
+  smtp_from: string;
+  smtp_secure: boolean;
+  missingVariables: string[];
+  configuredVariables: string[];
+}
+
 export default function SettingsPage() {
   // State to track API key from localStorage
   const [apiKey, setApiKey] = useState<string>("");
   const [apiKeyMasked, setApiKeyMasked] = useState<string>("");
   const [emailConfigured, setEmailConfigured] = useState<boolean>(false);
+  const [emailLoading, setEmailLoading] = useState<boolean>(true);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
-  // Check for API key and email setup in localStorage when the component mounts
+  // Fetch SMTP status from API
+  const fetchSMTPStatus = async () => {
+    try {
+      setEmailLoading(true);
+      const response = await fetch("/api/smtp/status");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: SMTPStatusResponse = await response.json();
+      setEmailConfigured(data.isConfigured);
+    } catch (err) {
+      console.error("Failed to fetch SMTP status:", err);
+      setEmailConfigured(false);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  // Check for API key and email setup when the component mounts
   useEffect(() => {
     // Check API key
     const storedApiKey = localStorage.getItem("CHANGEDETECTION_API_KEY") || "";
     setApiKey(storedApiKey);
 
-    // Check email configuration status
-    const emailSetup = localStorage.getItem("EMAIL_SETUP_CONFIRMED") === "true";
-    setEmailConfigured(emailSetup);
+    // Fetch email configuration status from API
+    fetchSMTPStatus();
 
     // Create a masked version of API key for display
     if (storedApiKey) {
@@ -121,7 +152,13 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div>
                 <div className="mb-1 font-medium">Email Status</div>
-                {emailConfigured ? (
+                {emailLoading ? (
+                  <div className="text-sm">
+                    <span className="rounded-md bg-gray-100 px-2 py-1 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                      Checking...
+                    </span>
+                  </div>
+                ) : emailConfigured ? (
                   <div className="text-sm">
                     <span className="rounded-md bg-green-100 px-2 py-1 text-green-800 dark:bg-green-900 dark:text-green-100">
                       Configured
@@ -137,21 +174,10 @@ export default function SettingsPage() {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={() => {
-                localStorage.removeItem("EMAIL_SETUP_CONFIRMED");
-                setEmailConfigured(false);
-                window.location.href = "/setup/email";
-              }}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Reset Email Settings
-            </Button>
+          <CardFooter className="flex justify-end">
             <Link href="/setup/email" passHref>
               <Button>
-                {emailConfigured ? "Reconfigure" : "Configure"} Email Settings
+                {emailConfigured ? "Check" : "Check"} Email Settings
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
