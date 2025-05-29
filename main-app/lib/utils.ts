@@ -63,13 +63,46 @@ export const getEncodedApiKey = (): string => {
  * @returns The base URL for the changedetection.io service
  */
 export const getChangeDetectionBaseUrl = (): string => {
+  // Check for environment variable first (works both server-side and client-side)
+  const envUrl = process.env.NEXT_PUBLIC_CHANGEDETECTION_URL;
+  if (envUrl) {
+    return envUrl;
+  }
+
   // In the browser context
   if (typeof window !== "undefined") {
     // Check for a URL stored in localStorage first (if available in the future)
     const localUrl = localStorage.getItem("CHANGEDETECTION_URL");
-    if (localUrl) return localUrl;
+    if (localUrl) {
+      return localUrl;
+    }
+
+    // Dynamic URL generation based on current domain
+    const currentHost = window.location.host;
+    const protocol = window.location.protocol;
+    
+    // If we're on localhost, use monitor.localhost
+    if (currentHost.includes('localhost')) {
+      const dynamicUrl = `${protocol}//monitor.localhost`;
+      return dynamicUrl;
+    }
+    
+    // For any other domain, prepend "monitor." to the current host
+    const dynamicUrl = `${protocol}//monitor.${currentHost}`;
+    return dynamicUrl;
   }
-  
-  // Fallback to the environment variable or default
-  return process.env.NEXT_PUBLIC_CHANGEDETECTION_URL || "http://localhost:8080";
+
+  // Server-side fallback: try to construct from NEXT_PUBLIC_WEBSITE_URL
+  if (process.env.NEXT_PUBLIC_WEBSITE_URL) {
+    try {
+      const url = new URL(process.env.NEXT_PUBLIC_WEBSITE_URL);
+      const fallbackUrl = `${url.protocol}//monitor.${url.host}`;
+      return fallbackUrl;
+    } catch {
+      // If URL parsing fails, fall back to default
+    }
+  }
+
+  // Final fallback for development
+  return "https://monitor.localhost";
 };
