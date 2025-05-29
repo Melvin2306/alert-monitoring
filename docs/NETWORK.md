@@ -31,57 +31,62 @@ The application uses the following isolated networks:
 ### Nginx (Public Entry Point)
 
 - Public-facing service
-- Only service directly exposed to the internet
-- Reverse proxies requests to `main-app` (port 3000) and `changedetection` (port 5000)
+- Only service directly exposed to the internet on ports 80 and 443
+- Reverse proxies requests to `main-app` and `changedetection`
 - Handles SSL termination for all services
+- Connected to `change_network` (for internal service communication) and `public_network` (for external access)
 - Provides health check endpoints at `/health`
 
 ### Main-App
 
 - Not directly exposed to the internet
+- Built from local Dockerfile in `./main-app` directory
 - Can only communicate with:
   - `postgres` (through `db_network`)
-  - `changedetection` (through `change_network`)
-  - `nginx` (through `change_network`)
+  - `changedetection` and `nginx` (through `change_network`)
+- Configured with comprehensive environment variables for database, SMTP, and service connectivity
 
 ### Change Detection
 
 - Not directly exposed to the internet
 - Accessible through Nginx on subdomain `monitor.*`
-- Can communicate with:
-  - `main-app` (through `change_network`)
-  - `playwright-chrome` (through `browser_network`)
-  - `torprivoxy` (through `proxy_network`)
-  - `nginx` (through `change_network`)
+- Connected to three networks:
+  - `proxy_network` (for Tor/Privoxy access)
+  - `change_network` (for communication with main-app and nginx)
+  - `browser_network` (for Playwright browser connectivity)
 - Configured with Tor proxy for accessing .onion sites and enhanced privacy
+- Uses Playwright WebDriver as the default fetch backend with comprehensive timeout and SSL configurations
 
 ### Playwright-Chrome
 
-- Isolated browser service
-- Can only communicate with:
-  - `changedetection` (through `browser_network`)
-  - `torprivoxy` (through `proxy_network`)
-- Configured with stealth mode and ad blocking for privacy
-- Uses special Chrome flags to handle Tor connectivity and .onion sites
-- Runs in a temporary filesystem for enhanced security
+- Isolated browser service using browserless/chrome image
+- Connected to two networks:
+  - `browser_network` (for changedetection communication)
+  - `proxy_network` (for Tor proxy access)
+- Configured with comprehensive Chrome flags for Tor connectivity and .onion sites
+- Runs with stealth mode, ad blocking, and enhanced security settings
+- Uses temporary filesystem (`tmpfs`) for enhanced security
+- Configured for 5 max concurrent sessions with connection timeouts
 
 ### Postgres Database
 
-- Highly isolated database
+- Highly isolated database using PostgreSQL 16 Alpine
 - Can only communicate with:
   - `main-app` (through `db_network`)
 - Port 5432 is only exposed on localhost (127.0.0.1:5433)
 - Protected with secure authentication (scram-sha-256)
+- Uses named volume for persistent data storage
 - Health checks ensure database availability
 
 ### TorPrivoxy
 
-- Bridge to the outside world for .onion access
-- Can communicate with:
-  - Outside world (through `tor_network`)
-  - `changedetection` and `playwright-chrome` (through `proxy_network`)
+- Bridge to the outside world for .onion access using avpnusr/torprivoxy image
+- Connected to two networks:
+  - `tor_network` (for outside world access, not internal)
+  - `proxy_network` (for internal service communication)
 - Ports 8118 (Privoxy), 9050 (Tor SOCKS), and 9051 (Tor Control) are only exposed on localhost
-- Configured for enhanced performance with .onion sites
+- Configured with optimized Tor settings for circuit management and performance
+- Uses persistent volume for Tor data storage
 
 ## Security Benefits
 
@@ -103,29 +108,33 @@ Internet
    ▼
  Nginx ───────────────┐
    │                  │
-   │                  │
+   │ (change_network) │
    ▼                  ▼
 Main-App        ChangeDetection
    │                  │
-   │                  ▼
-   │           Playwright-Chrome
-   │                  │
-   │                  │
+   │ (db_network)     │ (browser_network)
    ▼                  ▼
-Postgres        TorPrivoxy
+Postgres        Playwright-Chrome
                      │
+                     │ (proxy_network)
                      ▼
+                 TorPrivoxy
+                     │
+                     ▼ (tor_network)
                  Internet
 ```
 
 ## Notes
 
-- The Tor network is configured to handle .onion sites effectively
-- Nginx handles SSL termination and provides a secure entry point
-- All internal communication happens over isolated Docker networks
+- The Tor network is configured to handle .onion sites effectively with optimized circuit management
+- Nginx handles SSL termination and provides a secure entry point with HTTP to HTTPS redirection
+- All internal communication happens over isolated Docker networks with no unnecessary cross-network access
 - The database is completely isolated from the internet and other services except the main app
 - SMTP configuration is handled through environment variables and available to the main-app service
 - Health checks are implemented for all services to ensure proper functioning
+- Resource limits are configurable through environment variables for all services
+- Comprehensive timeout and security configurations are applied throughout the stack
+- The system uses named volumes for persistent data storage (postgres-data, tor-data, changedetection-data)
 
 ## Accessing Services
 
