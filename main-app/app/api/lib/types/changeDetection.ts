@@ -18,14 +18,14 @@ export type WatchMatch = {
   title: string;
   lastChanged: string | null;
   keywords: KeywordMatch[];
-}
+};
 
 // Interface for keyword information from database
 export type KeywordInfo = {
   id: string;
   keyword: string;
   category: string | null;
-}
+};
 
 // Interface for watch information from changedetection.io API
 export type WatchInfo = {
@@ -34,4 +34,4 @@ export type WatchInfo = {
   last_checked?: number;
   last_changed?: number;
   last_error?: string | boolean;
-}
+};

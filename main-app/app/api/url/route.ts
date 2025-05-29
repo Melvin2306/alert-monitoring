@@ -6,7 +6,7 @@
  * Implements full CRUD operations for URL watches with appropriate validation.
  */
 
-import { getApiKeyOrErrorResponse } from "@/app/api/lib/utils";
+import { addApiKeyToHeaders, withApiKeyAuth } from "@/app/api/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 // Set API configuration
@@ -19,7 +19,7 @@ const MAX_TITLE_LENGTH = 200;
 const MAX_URL_LENGTH = 2048; // Reasonable URL length limit
 
 // Allowed URL schemes for security
-const ALLOWED_SCHEMES = ['http:', 'https:'];
+const ALLOWED_SCHEMES = ["http:", "https:"];
 
 // Blocked network patterns to prevent SSRF
 const BLOCKED_HOSTS = [
@@ -36,7 +36,7 @@ const BLOCKED_HOSTS = [
 
 // Check if the changedetection.io URL is valid
 if (!CHANGEDETECTION_BASE_URL) {
-  console.error("WARNING: CHANGEDETECTION_URL environment variable is not set!");
+  // Environment variable not set
 }
 
 /**
@@ -55,13 +55,8 @@ function sanitizeInput(input: string): string {
 
 /**
  * POST handler for adding a new URL to monitor
- *
- * @param {NextRequest} req - The incoming request object containing URL and optional name
- * @returns {Promise<NextResponse>} JSON response with format:
- *   { message: string, watchId: string } or { message: string } on error
- * @throws Will return error response if the URL is invalid or API request fails
  */
-export async function POST(req: NextRequest) {
+export const POST = withApiKeyAuth(async (req: NextRequest, apiKey: string) => {
   try {
     // Parse the incoming request body
     const body = await req.json();
@@ -76,15 +71,17 @@ export async function POST(req: NextRequest) {
     let parsedUrl: URL;
     try {
       parsedUrl = new URL(url);
-      
+
       // Check for allowed URL schemes
       if (!ALLOWED_SCHEMES.includes(parsedUrl.protocol)) {
         return NextResponse.json(
-          { message: `URL scheme '${parsedUrl.protocol}' is not allowed. Only HTTP and HTTPS are permitted.` }, 
+          {
+            message: `URL scheme '${parsedUrl.protocol}' is not allowed. Only HTTP and HTTPS are permitted.`,
+          },
           { status: 400 }
         );
       }
-      
+
       // Check for blocked hosts (SSRF prevention)
       const hostname = parsedUrl.hostname.toLowerCase();
       for (const pattern of BLOCKED_HOSTS) {
@@ -95,7 +92,7 @@ export async function POST(req: NextRequest) {
           );
         }
       }
-      
+
       // Check URL length
       if (url.length > MAX_URL_LENGTH) {
         return NextResponse.json(
@@ -105,8 +102,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-    } catch (e) {
-      console.error("Invalid URL format:", e);
+    } catch {
       return NextResponse.json({ message: "Invalid URL format" }, { status: 400 });
     }
 
@@ -121,7 +117,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Prepare the data payload for changedetection.io
-    // The API expects at minimum the URL, but we can also include a title if provided
     const watchData: { url: string; title?: string } = {
       url,
     };
@@ -131,19 +126,12 @@ export async function POST(req: NextRequest) {
       watchData.title = sanitizeInput(title);
     }
 
-    // Send the request to changedetection.io
-    const apiKeyOrError = getApiKeyOrErrorResponse(req);
-    if (apiKeyOrError instanceof NextResponse) {
-      return apiKeyOrError; // Return the error response if API key retrieval failed
-    }
-    const apiKey = apiKeyOrError;
-
+    // Send the request to changedetection.io with API key
     const response = await fetch(CHANGEDETECTION_URL, {
       method: "POST",
-      headers: {
+      headers: addApiKeyToHeaders(apiKey, {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-      },
+      }),
       body: JSON.stringify(watchData),
     });
 
@@ -155,8 +143,7 @@ export async function POST(req: NextRequest) {
     try {
       // Parse the response text if it's valid JSON
       data = responseText ? JSON.parse(responseText) : {};
-    } catch (e) {
-      console.error("Error parsing response as JSON:", e);
+    } catch {
       data = {};
     }
 
@@ -177,23 +164,15 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("Error adding URL to monitoring:", error);
+  } catch {
     return NextResponse.json({ message: "Failed to process URL submission" }, { status: 500 });
   }
-}
+});
 
 /**
  * PUT handler for updating an existing monitored URL
- *
- * @param {NextRequest} req - The incoming request object containing watchId and update data
- * @param {string} req.body.watchId - The unique identifier for the watch to update
- * @param {string} [req.body.url] - Optional new URL to monitor
- * @param {string} [req.body.title] - Optional new title for the watch
- * @returns {Promise<NextResponse>} JSON response with format: { message: string }
- * @throws Will return error response if the watchId is invalid or API request fails
  */
-export async function PUT(req: NextRequest) {
+export const PUT = withApiKeyAuth(async (req: NextRequest, apiKey: string) => {
   try {
     // Parse the incoming request body
     const body = await req.json();
@@ -208,15 +187,17 @@ export async function PUT(req: NextRequest) {
       let parsedUrl: URL;
       try {
         parsedUrl = new URL(url);
-        
+
         // Check for allowed URL schemes
         if (!ALLOWED_SCHEMES.includes(parsedUrl.protocol)) {
           return NextResponse.json(
-            { message: `URL scheme '${parsedUrl.protocol}' is not allowed. Only HTTP and HTTPS are permitted.` }, 
+            {
+              message: `URL scheme '${parsedUrl.protocol}' is not allowed. Only HTTP and HTTPS are permitted.`,
+            },
             { status: 400 }
           );
         }
-        
+
         // Check for blocked hosts (SSRF prevention)
         const hostname = parsedUrl.hostname.toLowerCase();
         for (const pattern of BLOCKED_HOSTS) {
@@ -227,7 +208,7 @@ export async function PUT(req: NextRequest) {
             );
           }
         }
-        
+
         // Check URL length
         if (url.length > MAX_URL_LENGTH) {
           return NextResponse.json(
@@ -237,8 +218,7 @@ export async function PUT(req: NextRequest) {
             { status: 400 }
           );
         }
-      } catch (e) {
-        console.error("Invalid URL format:", e);
+      } catch {
         return NextResponse.json({ message: "Invalid URL format" }, { status: 400 });
       }
     }
@@ -264,18 +244,11 @@ export async function PUT(req: NextRequest) {
     }
 
     // Send the request to changedetection.io
-    const apiKeyOrError = getApiKeyOrErrorResponse(req);
-    if (apiKeyOrError instanceof NextResponse) {
-      return apiKeyOrError; // Return the error response if API key retrieval failed
-    }
-    const apiKey = apiKeyOrError;
-
     const response = await fetch(`${CHANGEDETECTION_URL}/${watchId}`, {
       method: "PUT",
-      headers: {
+      headers: addApiKeyToHeaders(apiKey, {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-      },
+      }),
       body: JSON.stringify(watchData),
     });
 
@@ -297,18 +270,15 @@ export async function PUT(req: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Error updating URL monitoring:", error);
+  } catch {
     return NextResponse.json({ message: "Failed to process URL update" }, { status: 500 });
   }
-}
+});
 
 /**
  * DELETE handler for removing a URL from monitoring
- * @param {NextRequest} req - The incoming request object containing watchId
- * @returns {Promise<NextResponse>} JSON response with the result of the operation
  */
-export async function DELETE(req: NextRequest) {
+export const DELETE = withApiKeyAuth(async (req: NextRequest, apiKey: string) => {
   try {
     // Get the watch ID from the URL or request body
     const { searchParams } = new URL(req.url);
@@ -325,17 +295,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Send the delete request to changedetection.io
-    const apiKeyOrError = getApiKeyOrErrorResponse(req);
-    if (apiKeyOrError instanceof NextResponse) {
-      return apiKeyOrError; // Return the error response if API key retrieval failed
-    }
-    const apiKey = apiKeyOrError;
-
     const response = await fetch(`${CHANGEDETECTION_URL}/${watchId}`, {
       method: "DELETE",
-      headers: {
-        "x-api-key": apiKey,
-      },
+      headers: addApiKeyToHeaders(apiKey),
     });
 
     // Handle the response from changedetection.io
@@ -356,19 +318,15 @@ export async function DELETE(req: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Error deleting URL monitoring:", error);
+  } catch {
     return NextResponse.json({ message: "Failed to process delete request" }, { status: 500 });
   }
-}
+});
 
 /**
  * PATCH handler for refreshing a specific URL
- *
- * @param {NextRequest} req - The incoming request object containing watchId
- * @returns {Promise<NextResponse>} JSON response indicating refresh status
  */
-export async function PATCH(req: NextRequest) {
+export const PATCH = withApiKeyAuth(async (req: NextRequest, apiKey: string) => {
   try {
     // Parse the incoming request body
     const body = await req.json();
@@ -378,19 +336,10 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: "Watch ID is required" }, { status: 400 });
     }
 
-    // Send the recheck request to changedetection.io
-    const apiKeyOrError = getApiKeyOrErrorResponse(req);
-    if (apiKeyOrError instanceof NextResponse) {
-      return apiKeyOrError; // Return the error response if API key retrieval failed
-    }
-    const apiKey = apiKeyOrError;
-
     // According to the API docs, to recheck a specific watch, use /v1/watch/:uuid?recheck=1
     const response = await fetch(`${CHANGEDETECTION_URL}/${watchId}?recheck=1`, {
       method: "GET",
-      headers: {
-        "x-api-key": apiKey,
-      },
+      headers: addApiKeyToHeaders(apiKey),
     });
 
     // Handle the response from changedetection.io
@@ -398,7 +347,7 @@ export async function PATCH(req: NextRequest) {
       const errorStatus = response.status;
       const errorText = await response.text();
       let errorMessage = "Unknown error";
-      
+
       try {
         const errorData = JSON.parse(errorText);
         errorMessage = errorData.error || errorData.message || "Unknown error";
@@ -406,15 +355,13 @@ export async function PATCH(req: NextRequest) {
         // If parsing fails, use the raw error text
         errorMessage = errorText || "Unknown error";
       }
-      
-      console.error(`Failed to refresh URL (${errorStatus}): ${errorMessage}`);
-      
+
       return NextResponse.json(
         {
           success: false,
           message: `Failed to refresh URL: ${errorMessage}`,
           status: errorStatus,
-          details: errorText
+          details: errorText,
         },
         { status: response.status }
       );
@@ -429,8 +376,7 @@ export async function PATCH(req: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Error triggering URL refresh:", error);
+  } catch {
     return NextResponse.json({ message: "Failed to trigger URL refresh" }, { status: 500 });
   }
-}
+});

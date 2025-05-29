@@ -48,24 +48,31 @@ export const contextDisplay = {
 
   html: (vars: Pick<TemplateVariables, "context" | "highlightedContext">) => {
     if (!vars.context && !vars.highlightedContext) return "";
-    
+
     const displayContent = vars.highlightedContext || vars.context || "";
-    
+
     return `
 <div style="margin: 8px 0; padding: 8px; background-color: #f5f5f5; border-radius: 4px; font-size: 13px; color: #444;">
   <p style="margin: 0 0 5px 0;"><strong>Context:</strong></p>
   <p style="margin: 0; font-family: monospace; white-space: pre-wrap;">${displayContent}</p>
 </div>`;
-  }
+  },
 };
 
 // Single finding templates
 export const singleFinding = {
-  text: (vars: Pick<TemplateVariables, "keywords" | "url" | "findingTime" | "siteName" | "context">) =>
+  text: (
+    vars: Pick<TemplateVariables, "keywords" | "url" | "findingTime" | "siteName" | "context">
+  ) =>
     `ALERT: Keyword "${vars.keywords?.[0]}" was found at ${vars.siteName || vars.url} at ${vars.findingTime}.
 URL: ${vars.url}${contextDisplay.text({ context: vars.context })}`,
 
-  html: (vars: Pick<TemplateVariables, "keywords" | "url" | "findingTime" | "siteName" | "context" | "highlightedContext">) =>
+  html: (
+    vars: Pick<
+      TemplateVariables,
+      "keywords" | "url" | "findingTime" | "siteName" | "context" | "highlightedContext"
+    >
+  ) =>
     `<div style="margin: 15px 0; padding: 10px; border-left: 4px solid #ff3b30; background-color: #fff4f4;">
   <p><strong>⚠️ ALERT:</strong> Keyword "<strong>${vars.keywords?.[0]}</strong>" was found at ${vars.siteName || vars.url} at <em>${vars.findingTime}</em>.</p>
   <p>URL: <a href="${vars.url}" target="_blank" rel="noopener noreferrer">${vars.url}</a></p>
@@ -75,7 +82,9 @@ URL: ${vars.url}${contextDisplay.text({ context: vars.context })}`,
 
 // Multiple findings templates
 export const multipleFindings = {
-  text: (vars: Pick<TemplateVariables, "keywords" | "url" | "findingTime" | "siteName" | "context">) => {
+  text: (
+    vars: Pick<TemplateVariables, "keywords" | "url" | "findingTime" | "siteName" | "context">
+  ) => {
     const keywordsText =
       vars.keywords && vars.keywords.length > 0
         ? vars.keywords.map((k) => `"${k}"`).join(", ")
@@ -85,7 +94,12 @@ export const multipleFindings = {
 URL: ${vars.url}${contextDisplay.text({ context: vars.context })}`;
   },
 
-  html: (vars: Pick<TemplateVariables, "keywords" | "url" | "findingTime" | "siteName" | "context" | "highlightedContext">) => {
+  html: (
+    vars: Pick<
+      TemplateVariables,
+      "keywords" | "url" | "findingTime" | "siteName" | "context" | "highlightedContext"
+    >
+  ) => {
     const keywordsHtml =
       vars.keywords && vars.keywords.length > 0
         ? vars.keywords.map((k) => `<strong>"${k}"</strong>`).join(", ")

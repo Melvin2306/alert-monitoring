@@ -91,11 +91,14 @@ export async function POST(request: Request) {
       text: message,
     };
 
-    console.log("📤 Sending email with options:", JSON.stringify({
-      to,
-      subject,
-      messageLength: message.length,
-    }));
+    console.log(
+      "📤 Sending email with options:",
+      JSON.stringify({
+        to,
+        subject,
+        messageLength: message.length,
+      })
+    );
 
     // Send email and get result
     console.log("🚀 Attempting to send email...");
@@ -120,11 +123,11 @@ export async function POST(request: Request) {
     console.error("Error stack:", emailError.stack);
 
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: `Failed to send email: ${emailError.message}`,
-        error: emailError.stack
-      }, 
+        error: emailError.stack,
+      },
       { status: 500 }
     );
   }

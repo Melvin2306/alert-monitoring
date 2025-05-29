@@ -24,7 +24,6 @@ export const useUrlsManagement = () => {
         setUrls(data);
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch URLs:", err);
         setError(err instanceof Error ? err.message : String(err));
         setLoading(false);
       }
@@ -37,11 +36,11 @@ export const useUrlsManagement = () => {
   const handleRefreshAllUrls = async () => {
     try {
       setLoading(true);
-      
+
       // Mark all URLs as pending during refresh
-      const pendingUrls: Url[] = urls.map(url => ({
+      const pendingUrls: Url[] = urls.map((url) => ({
         ...url,
-        status: "pending"
+        status: "pending",
       }));
       setUrls(pendingUrls);
 
@@ -49,15 +48,14 @@ export const useUrlsManagement = () => {
       setUrls(updatedUrls);
       setLoading(false);
     } catch (err) {
-      console.error("Failed to refresh URLs:", err);
       setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
-      
+
       // Reset URLs to their previous state but with error status
-      const errorUrls: Url[] = urls.map(url => ({
+      const errorUrls: Url[] = urls.map((url) => ({
         ...url,
         status: "error",
-        errorText: err instanceof Error ? err.message : String(err)
+        errorText: err instanceof Error ? err.message : String(err),
       }));
       setUrls(errorUrls);
     }
@@ -72,29 +70,28 @@ export const useUrlsManagement = () => {
     try {
       // Update loading state for specific URL
       const updatedUrls: Url[] = [...urls];
-      const urlIndex = updatedUrls.findIndex(u => u.id === id);
+      const urlIndex = updatedUrls.findIndex((u) => u.id === id);
       if (urlIndex >= 0) {
         updatedUrls[urlIndex] = { ...updatedUrls[urlIndex], status: "pending" };
         setUrls(updatedUrls);
       }
-      
+
       setLoading(true);
       const refreshedUrls = await refreshUrl(id);
       setUrls(refreshedUrls);
       setLoading(false);
     } catch (err) {
-      console.error(`Failed to refresh URL with ID ${id}:`, err);
       setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
-      
+
       // Reset the URL status if there was an error
       const updatedUrls: Url[] = [...urls];
-      const urlIndex = updatedUrls.findIndex(u => u.id === id);
+      const urlIndex = updatedUrls.findIndex((u) => u.id === id);
       if (urlIndex >= 0) {
-        updatedUrls[urlIndex] = { 
-          ...updatedUrls[urlIndex], 
+        updatedUrls[urlIndex] = {
+          ...updatedUrls[urlIndex],
           status: "error",
-          errorText: err instanceof Error ? err.message : String(err)
+          errorText: err instanceof Error ? err.message : String(err),
         };
         setUrls(updatedUrls);
       }
@@ -109,7 +106,6 @@ export const useUrlsManagement = () => {
       setUrls(urls.filter((url) => url.id !== id));
       return true;
     } catch (err) {
-      console.error(`Error deleting URL with ID ${id}:`, err);
       setError(err instanceof Error ? err.message : String(err));
       return false;
     }
