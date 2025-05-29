@@ -97,13 +97,15 @@ update_env_file() {
     fi
   done
   
+  echo ""
   echo "✅ Environment configuration completed successfully"
 }
 
 # Display startup banner
-echo "==============================================="
-echo "   ChangeDetection.io TOR Proxy Service        "
-echo "==============================================="
+echo "========================================================"
+echo "   ALERT - Automated Leak Examination and Reporting Tool"
+echo "   Main Application (Next.js)"
+echo "========================================================"
 echo "Starting initialization process..."
 
 # Update the environment file
