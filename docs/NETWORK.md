@@ -199,6 +199,8 @@ graph TD
     class PortMappings localhostNet
 ```
 
+You can visualize and edit this Mermaid diagram with a tool like [Mermaid Flow](https://www.mermaidflow.app/editor).
+
 ### Network Flow Summary
 
 The diagram above illustrates the flow of data through the various network segments:
