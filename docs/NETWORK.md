@@ -100,29 +100,115 @@ The application uses the following isolated networks:
 
 5. **Segmented Attack Surface**: A compromise of one service doesn't automatically grant access to all services.
 
-## Network Flow Diagram
+## Network Architecture Diagram
 
-```ascii
-Internet
-   │
-   ▼
- Nginx ───────────────┐
-   │                  │
-   │ (change_network) │
-   ▼                  ▼
-Main-App        ChangeDetection
-   │                  │
-   │ (db_network)     │ (browser_network)
-   ▼                  ▼
-Postgres        Playwright-Chrome
-                     │
-                     │ (proxy_network)
-                     ▼
-                 TorPrivoxy
-                     │
-                     ▼ (tor_network)
-                 Internet
+![Network Architecture](network-architecture.png)
+
+The following Mermaid diagram shows the detailed network architecture with all services and their connections:
+
+```mermaid
+graph TD
+    %% External entities
+    Internet[🌐 Internet]
+    TorNetwork[🧅 Tor Network<br/>.onion Sites]
+    
+    %% Network boundaries with services
+    subgraph tor_network [" 🧅 TOR NETWORK (external) "]
+        direction TB
+        TorPrivoxy[🔐 Tor + Privoxy<br/>torprivoxy:8118/9050]
+        TorNetwork
+        TorPrivoxy -.->|anonymized exit| TorNetwork
+    end
+    
+    subgraph public_network [" 🌍 PUBLIC NETWORK (external) "]
+        direction TB
+        Internet
+        Nginx[🔒 Nginx Reverse Proxy<br/>ports 80/443]
+        Internet -->|HTTP/HTTPS| Nginx
+    end
+    
+    subgraph change_network [" 🔄 CHANGE NETWORK (internal) "]
+        direction TB
+        NginxChange[🔒 Nginx]
+        MainApp[⚛️ Next.js Main App<br/>nextjs-app]
+        ChangeDetection[👁️ ChangeDetection.io<br/>changedetection:5000]
+        
+        NginxChange -->|reverse proxy| MainApp
+        NginxChange -->|reverse proxy| ChangeDetection
+    end
+    
+    subgraph db_network [" 🗄️ DATABASE NETWORK (internal) "]
+        direction TB
+        MainAppDB[⚛️ Main App]
+        Postgres[🗃️ PostgreSQL 16<br/>localhost:5433→5432]
+        
+        MainAppDB -->|DATABASE_URL<br/>postgresql://| Postgres
+    end
+    
+    subgraph browser_network [" 🎭 BROWSER NETWORK (internal) "]
+        direction TB
+        ChangeDetectionBrowser[👁️ ChangeDetection]
+        Playwright[🎭 Playwright Chrome<br/>browserless/chrome:3000]
+        
+        ChangeDetectionBrowser -->|PLAYWRIGHT_DRIVER_URL<br/>ws://playwright-chrome:3000| Playwright
+    end
+    
+    subgraph proxy_network [" 🔐 PROXY NETWORK (internal) "]
+        direction TB
+        TorPrivoxyProxy[🔐 Tor + Privoxy]
+        ChangeDetectionProxy[👁️ ChangeDetection]
+        PlaywrightProxy[🎭 Playwright]
+        
+        ChangeDetectionProxy -->|HTTP_PROXY/HTTPS_PROXY<br/>http://proxy:8118| TorPrivoxyProxy
+        ChangeDetectionProxy -->|SOCKS_HOST<br/>proxy:9050| TorPrivoxyProxy
+        PlaywrightProxy -->|--proxy-server<br/>http://proxy:8118| TorPrivoxyProxy
+    end
+    
+    %% Cross-network connections (shown as dotted lines for network boundaries)
+    Nginx -.->|same service| NginxChange
+    MainApp -.->|same service| MainAppDB
+    ChangeDetection -.->|same service| ChangeDetectionBrowser
+    ChangeDetection -.->|same service| ChangeDetectionProxy
+    Playwright -.->|same service| PlaywrightProxy
+    TorPrivoxy -.->|same service| TorPrivoxyProxy
+    
+    %% Network styling
+    classDef torNet fill:#ff9999,stroke:#cc0000,stroke-width:3px,color:#000
+    classDef publicNet fill:#99ccff,stroke:#0066cc,stroke-width:3px,color:#000
+    classDef changeNet fill:#99ff99,stroke:#00cc00,stroke-width:2px,color:#000
+    classDef dbNet fill:#ffcc99,stroke:#ff6600,stroke-width:2px,color:#000
+    classDef browserNet fill:#ffff99,stroke:#cccc00,stroke-width:2px,color:#000
+    classDef proxyNet fill:#cc99ff,stroke:#6600cc,stroke-width:2px,color:#000
+    classDef localhostNet fill:#ffcccc,stroke:#ff0000,stroke-width:2px,color:#000
+    
+    %% Service styling
+    classDef external fill:#ff6b6b,stroke:#333,stroke-width:3px,color:#fff
+    classDef proxy fill:#4ecdc4,stroke:#333,stroke-width:2px,color:#fff
+    classDef app fill:#45b7d1,stroke:#333,stroke-width:2px,color:#fff
+    classDef db fill:#96ceb4,stroke:#333,stroke-width:2px,color:#fff
+    classDef browser fill:#feca57,stroke:#333,stroke-width:2px,color:#000
+    classDef gateway fill:#ff9ff3,stroke:#333,stroke-width:2px,color:#000
+    
+    %% Apply service styles
+    class Internet,TorNetwork external
+    class TorPrivoxy,TorPrivoxyProxy proxy
+    class MainApp,MainAppDB,ChangeDetection,ChangeDetectionBrowser,ChangeDetectionProxy app
+    class Postgres db
+    class Playwright,PlaywrightProxy browser
+    class Nginx,NginxChange gateway
+    class PortMappings localhostNet
 ```
+
+### Network Flow Summary
+
+The diagram above illustrates the flow of data through the various network segments:
+
+1. **External Access**: Internet traffic enters through Nginx on the `public_network`
+2. **Internal Routing**: Nginx routes requests to services within the `change_network`
+3. **Database Access**: Main-App connects to PostgreSQL through the isolated `db_network`
+4. **Browser Automation**: ChangeDetection communicates with Playwright via the `browser_network`
+5. **Tor Proxy**: Both ChangeDetection and Playwright access the internet through Tor via the `proxy_network`
+6. **External Exit**: Tor traffic exits through the `tor_network` to access .onion sites and provide anonymity
 
 ## Notes
 
