@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 /**
  * A reusable form wrapper component for consistent form styling and behavior
@@ -69,14 +70,25 @@ export function FormWrapper({
       >
         {children}
 
-        <Button
-          variant="default"
-          type="submit"
-          disabled={isSubmitting || !isValid}
-          className="w-full rounded-md px-4 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
-        >
-          {isSubmitting ? `${submitButtonText}...` : submitButtonText}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="default"
+                type="submit"
+                disabled={isSubmitting || !isValid}
+                className="w-full rounded-md px-4 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+              >
+                {isSubmitting ? `${submitButtonText}...` : submitButtonText}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {isSubmitting ? loadingMessage : `Submit form to ${submitButtonText.toLowerCase()}`}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </form>
     </div>
   );

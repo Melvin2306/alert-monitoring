@@ -77,12 +77,25 @@ export default function EmailsTab({
             <CardTitle className="text-xl">Email Addresses</CardTitle>
             <CardDescription>Email addresses that receive alerts</CardDescription>
           </div>
-          <Link href="/add/email">
-            <Button variant="outline" size="sm" className="flex cursor-pointer items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Add Email
-            </Button>
-          </Link>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/add/email">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex cursor-pointer items-center gap-2"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Add Email
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add a new email address to receive alerts</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardHeader>
       <CardContent>
@@ -99,12 +112,21 @@ export default function EmailsTab({
         ) : emails.length === 0 ? (
           <div className="py-10 text-center">
             <p className="text-muted-foreground">No email addresses added yet</p>
-            <Link href="/add/email">
-              <Button variant="outline" className="mt-4 flex items-center gap-2">
-                <PlusCircle className="h-4 w-4" />
-                Add Your First Email
-              </Button>
-            </Link>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/add/email">
+                    <Button variant="outline" className="mt-4 flex items-center gap-2">
+                      <PlusCircle className="h-4 w-4" />
+                      Add Your First Email
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add your first email address to start receiving alerts</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         ) : (
           <>
@@ -246,25 +268,43 @@ export default function EmailsTab({
                   {Math.min(currentPage * itemsPerPage, emails.length)} of {emails.length} emails
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                    disabled={currentPage <= 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                          disabled={currentPage <= 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Previous page</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="text-muted-foreground text-sm">
                     Page {currentPage} of {totalPages}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                    disabled={currentPage >= totalPages}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                          disabled={currentPage >= totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Next page</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             )}

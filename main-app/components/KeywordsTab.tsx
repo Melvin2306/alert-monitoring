@@ -83,12 +83,25 @@ export default function KeywordTab({
             <CardTitle className="text-xl">Monitored Keywords</CardTitle>
             <CardDescription>Keywords being tracked for changes</CardDescription>
           </div>
-          <Link href="/add/keyword">
-            <Button variant="outline" size="sm" className="flex cursor-pointer items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Add Keywords
-            </Button>
-          </Link>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/add/keyword">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex cursor-pointer items-center gap-2"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Add Keywords
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add new keywords to monitor</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardHeader>
       <CardContent>
@@ -105,12 +118,21 @@ export default function KeywordTab({
         ) : keywords.length === 0 ? (
           <div className="py-10 text-center">
             <p className="text-muted-foreground">No keywords added yet</p>
-            <Link href="/add/keyword">
-              <Button variant="outline" className="mt-4 flex items-center gap-2">
-                <PlusCircle className="h-4 w-4" />
-                Add Your First Keyword
-              </Button>
-            </Link>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/add/keyword">
+                    <Button variant="outline" className="mt-4 flex items-center gap-2">
+                      <PlusCircle className="h-4 w-4" />
+                      Add Your First Keyword
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add your first keyword to start monitoring</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         ) : (
           <>
@@ -287,25 +309,43 @@ export default function KeywordTab({
                   keywords
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                    disabled={currentPage <= 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                          disabled={currentPage <= 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Previous page</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="text-muted-foreground text-sm">
                     Page {currentPage} of {totalPages}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                    disabled={currentPage >= totalPages}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                          disabled={currentPage >= totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Next page</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             )}

@@ -9,6 +9,7 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Github, LucideAlertTriangle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,7 +40,7 @@ export default function Header() {
 
   return (
     <div className="mx-2 flex w-full flex-row items-center justify-between">
-      <div className="flex flex-row items-center gap-4">
+      <div className="mt-1 flex flex-row items-center gap-4">
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem className="min-w-[120px]">
@@ -111,18 +112,27 @@ export default function Header() {
         )}
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="icon"
-          asChild
-          aria-label="GitHub repository"
-          className="cursor-pointer"
-        >
-          <Link href="#" target="_blank" rel="noopener noreferrer">
-            <Github className="h-[1.2rem] w-[1.2rem]" />
-          </Link>
-        </Button>
+      <div className="mt-1 mr-4 ml-auto flex items-center gap-3">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                asChild
+                aria-label="GitHub repository"
+                className="cursor-pointer"
+              >
+                <Link href="#" target="_blank" rel="noopener noreferrer">
+                  <Github className="h-[1.2rem] w-[1.2rem]" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>View on GitHub</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <ModeToggle />
       </div>
     </div>

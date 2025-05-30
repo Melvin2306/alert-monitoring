@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SMTPStatusResponse } from "@/lib/types";
 import { ArrowRight, KeyRound, Mail, RefreshCw, Shield } from "lucide-react";
 import Link from "next/link";
@@ -115,16 +116,34 @@ export default function SettingsPage() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={handleResetApiKey}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Reset API Key
-            </Button>
-            <Link href="/setup/api" passHref>
-              <Button>
-                {apiKey ? "Reconfigure" : "Configure"} API Connection
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={handleResetApiKey}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Reset API Key
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Remove the stored API key and return to setup</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/setup/api" passHref>
+                    <Button>
+                      {apiKey ? "Reconfigure" : "Configure"} API Connection
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{apiKey ? "Change your API configuration" : "Set up your API connection"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardFooter>
         </Card>
 
@@ -165,12 +184,21 @@ export default function SettingsPage() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Link href="/setup/email" passHref>
-              <Button>
-                {emailConfigured ? "Check" : "Check"} Email Settings
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/setup/email" passHref>
+                    <Button>
+                      {emailConfigured ? "Check" : "Check"} Email Settings
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View and configure your email notification settings</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardFooter>
         </Card>
 
