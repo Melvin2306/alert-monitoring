@@ -15,6 +15,7 @@ graph TD
         direction TB
         Internet
         Nginx[🔒 Nginx Reverse Proxy<br/>ports 80/443]
+        MainAppPublic[⚛️ Next.js Main App<br/>nextjs-app]
         Internet -->|HTTP/HTTPS| Nginx
     end
     
@@ -58,6 +59,7 @@ graph TD
     %% Cross-network connections (shown as dotted lines for network boundaries)
     Nginx -.->|same service| NginxChange
     MainApp -.->|same service| MainAppDB
+    MainApp -.->|same service| MainAppPublic
     ChangeDetection -.->|same service| ChangeDetectionBrowser
     ChangeDetection -.->|same service| ChangeDetectionProxy
     Playwright -.->|same service| PlaywrightProxy
@@ -83,7 +85,7 @@ graph TD
     %% Apply service styles
     class Internet,TorNetwork external
     class TorPrivoxy,TorPrivoxyProxy proxy
-    class MainApp,MainAppDB,ChangeDetection,ChangeDetectionBrowser,ChangeDetectionProxy app
+    class MainApp,MainAppDB,MainAppPublic,ChangeDetection,ChangeDetectionBrowser,ChangeDetectionProxy app
     class Postgres db
     class Playwright,PlaywrightProxy browser
     class Nginx,NginxChange gateway

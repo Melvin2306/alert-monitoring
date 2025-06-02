@@ -23,8 +23,8 @@ The application uses the following isolated networks:
 5. **db_network**: Isolated network for database connectivity
    - Connected services: `postgres`, `main-app`
 
-6. **public_network**: Public-facing network for nginx
-   - Connected services: `nginx`
+6. **public_network**: Public-facing network for nginx and main-app
+   - Connected services: `nginx`, `main-app`
 
 ## Service Access Restrictions
 
@@ -39,11 +39,11 @@ The application uses the following isolated networks:
 
 ### Main-App
 
-- Not directly exposed to the internet
 - Built from local Dockerfile in `./main-app` directory
-- Can only communicate with:
+- Connected to multiple networks for comprehensive functionality:
   - `postgres` (through `db_network`)
   - `changedetection` and `nginx` (through `change_network`)
+  - Direct public access (through `public_network`)
 - Configured with comprehensive environment variables for database, SMTP, and service connectivity
 
 ### Change Detection
@@ -92,9 +92,9 @@ The application uses the following isolated networks:
 
 1. **Database Isolation**: The PostgreSQL database is only accessible by the main application.
 
-2. **No Direct Service Exposure**: None of the internal services are directly exposed to the internet.
+2. **Limited Direct Service Exposure**: Only nginx and main-app are directly connected to the public network, minimizing the attack surface.
 
-3. **Controlled Internet Access**: Only Tor proxy can access the internet directly (apart from nginx for inbound connections).
+3. **Controlled Internet Access**: Only Tor proxy can access the internet directly (apart from nginx and main-app for inbound connections).
 
 4. **Principle of Least Privilege**: Each service has access only to the networks it needs to function.
 
@@ -124,6 +124,7 @@ graph TD
         direction TB
         Internet
         Nginx[🔒 Nginx Reverse Proxy<br/>ports 80/443]
+        MainAppPublic[⚛️ Next.js Main App<br/>nextjs-app]
         Internet -->|HTTP/HTTPS| Nginx
     end
     
@@ -167,6 +168,7 @@ graph TD
     %% Cross-network connections (shown as dotted lines for network boundaries)
     Nginx -.->|same service| NginxChange
     MainApp -.->|same service| MainAppDB
+    MainApp -.->|same service| MainAppPublic
     ChangeDetection -.->|same service| ChangeDetectionBrowser
     ChangeDetection -.->|same service| ChangeDetectionProxy
     Playwright -.->|same service| PlaywrightProxy
@@ -192,7 +194,7 @@ graph TD
     %% Apply service styles
     class Internet,TorNetwork external
     class TorPrivoxy,TorPrivoxyProxy proxy
-    class MainApp,MainAppDB,ChangeDetection,ChangeDetectionBrowser,ChangeDetectionProxy app
+    class MainApp,MainAppDB,MainAppPublic,ChangeDetection,ChangeDetectionBrowser,ChangeDetectionProxy app
     class Postgres db
     class Playwright,PlaywrightProxy browser
     class Nginx,NginxChange gateway
@@ -205,7 +207,7 @@ You can visualize and edit this Mermaid diagram with a tool like [Mermaid Flow](
 
 The diagram above illustrates the flow of data through the various network segments:
 
-1. **External Access**: Internet traffic enters through Nginx on the `public_network`
+1. **External Access**: Internet traffic enters through both Nginx and Main-App on the `public_network`
 2. **Internal Routing**: Nginx routes requests to services within the `change_network`
 3. **Database Access**: Main-App connects to PostgreSQL through the isolated `db_network`
 4. **Browser Automation**: ChangeDetection communicates with Playwright via the `browser_network`

@@ -137,6 +137,7 @@ services:
     networks:
       - change_network
       - db_network
+      - public_network
     depends_on:
       changedetection:
         condition: service_started
