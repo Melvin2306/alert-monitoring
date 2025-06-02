@@ -168,26 +168,53 @@ update_env_value "SMTP_SECURE" "$smtp_secure"
 
 echo -e "${GREEN}SMTP configuration has been saved to .env file.${NC}"
 
-# Ask if user wants to test the SMTP configuration
-read -p "Would you like to test the SMTP configuration? (Y/n): " test_smtp
-if [[ $test_smtp =~ ^[Yy]$ ]] || [ -z "$test_smtp" ]; then
-    echo -e "${YELLOW}Testing SMTP configuration...${NC}"
-    echo "This will restart the nextjs-app container to apply the settings."
+# Ask if user wants to apply the SMTP configuration
+read -p "Would you like to apply the SMTP configuration now? (Y/n): " apply_smtp
+if [[ $apply_smtp =~ ^[Yy]$ ]] || [ -z "$apply_smtp" ]; then
+    echo -e "${YELLOW}Applying SMTP configuration...${NC}"
+    echo "This will recreate the main-app container to apply the new environment variables."
     
     # Check if docker is available
-    if command -v docker &> /dev/null; then
-        # Restart the nextjs-app container
-        docker compose restart main-app
+    if command -v docker &> /dev/null && command -v docker-compose &> /dev/null; then
+        # Stop and recreate the main-app container to pick up new environment variables
+        echo -e "${BLUE}Stopping main-app container...${NC}"
+        docker compose stop main-app
         
-        echo -e "${GREEN}The nextjs-app container has been restarted with the new SMTP settings.${NC}"
-        echo -e "${GREEN}You can test your email configuration by sending a test email from the settings page.${NC}"
+        echo -e "${BLUE}Recreating main-app container with new environment variables...${NC}"
+        docker compose up -d main-app
+        
+        # Wait a moment for the container to start
+        sleep 5
+        
+        # Check if the container is running
+        if docker compose ps main-app | grep -q "Up"; then
+            echo -e "${GREEN}✅ The main-app container has been successfully recreated with the new SMTP settings.${NC}"
+            echo -e "${GREEN}You can now test your email configuration by sending a test email from the settings page.${NC}"
+            echo ""
+            echo -e "${BLUE}💡 Tip: You can view the container logs with:${NC}"
+            echo "docker compose logs -f main-app"
+        else
+            echo -e "${RED}❌ Failed to start the main-app container. Checking logs...${NC}"
+            docker compose logs --tail=20 main-app
+        fi
     else
-        echo -e "${RED}Docker is not available. Please restart the containers manually:${NC}"
-        echo "docker compose restart main-app"
+        echo -e "${RED}Docker or docker-compose is not available. Please apply the changes manually:${NC}"
+        echo ""
+        echo "1. Stop the container:"
+        echo "   docker compose stop main-app"
+        echo ""
+        echo "2. Recreate the container with new environment variables:"
+        echo "   docker compose up -d main-app"
+        echo ""
+        echo "3. Check the container status:"
+        echo "   docker compose ps main-app"
     fi
 else
-    echo -e "${YELLOW}You can restart the application to apply changes with:${NC}"
-    echo "docker compose restart main-app"
+    echo -e "${YELLOW}SMTP configuration saved but not applied.${NC}"
+    echo -e "${YELLOW}To apply the changes later, run:${NC}"
+    echo ""
+    echo "docker compose stop main-app"
+    echo "docker compose up -d main-app"
 fi
 
 echo -e "${GREEN}Setup complete!${NC}"
