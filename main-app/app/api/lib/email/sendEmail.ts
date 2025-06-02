@@ -3,6 +3,7 @@
  */
 import type { Finding, SendAlertOptions } from "../types";
 import { buildAlertEmail } from "./emailBuilder";
+import { sendEmailViaSMTP } from "./smtpService";
 
 /**
  * Format date for email display
@@ -54,7 +55,9 @@ export function createFinding(
  * @param options - Configuration options for the email
  * @returns Promise resolving to the API response
  */
-export async function sendAlertEmail(options: SendAlertOptions): Promise<Response> {
+export async function sendAlertEmail(
+  options: SendAlertOptions
+): Promise<{ success: boolean; messageId?: string; message: string }> {
   const {
     subject = "Alert: Darkweb Monitoring Detection",
     recipients,
@@ -72,31 +75,34 @@ export async function sendAlertEmail(options: SendAlertOptions): Promise<Respons
     emailId,
   });
 
-  try {
-    const response = await fetch("/api/send-email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+  // Send to each recipient individually
+  const results = [];
+
+  for (const email of recipients) {
+    try {
+      const result = await sendEmailViaSMTP({
         subject,
         html: emailContent.html,
         text: emailContent.text,
-        email_addresses: recipients,
+        email_address: email,
         cc,
         bcc,
         replyTo,
         priority,
-      }),
-    });
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to send email: ${errorData.message || response.statusText}`);
+      results.push(result);
+    } catch (error) {
+      console.error(`Failed to send email to ${email}:`, error);
+      throw error;
     }
-
-    return await response.json();
-  } catch (error) {
-    throw error;
   }
+
+  // Return the first result (for single recipient) or combined result
+  return results.length === 1
+    ? results[0]
+    : {
+        success: true,
+        message: `Successfully sent ${results.length} emails`,
+      };
 }
